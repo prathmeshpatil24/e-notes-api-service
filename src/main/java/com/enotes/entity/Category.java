@@ -27,22 +27,22 @@ public class Category extends BaseModel {
     @NotNull(message = "isActive must not be null")
     private Boolean isActive;
 
-    @Column(name = "is_deleted")
-    private  Boolean isDeleted;
+//    @Column(name = "is_deleted")
+//    private  Boolean isDeleted;
 
 
     public Category(Integer id,
                     String name,
                     String description,
-                    Boolean isActive,
-                    Boolean isDeleted
+                    Boolean isActive
+//                    Boolean isDeleted
                     )
     {
         this.id = id;
         this.name = name;
         this.description = description;
         this.isActive = isActive;
-        this.isDeleted = isDeleted;
+//        this.isDeleted = isDeleted;
     }
 
     public Category() {}
@@ -71,13 +71,13 @@ public class Category extends BaseModel {
         this.name = name;
     }
 
-    public Boolean getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
+//    public Boolean getIsDeleted() {
+//        return isDeleted;
+//    }
+//
+//    public void setIsDeleted(Boolean deleted) {
+//        isDeleted = deleted;
+//    }
 
     public Boolean getIsActive() {
         return isActive;
@@ -94,7 +94,7 @@ public class Category extends BaseModel {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\''+
                 "isActive=" + isActive +
-                ", isDeleted=" + isDeleted +
+//                ", isDeleted=" + isDeleted +
                 '}';
     }
 }

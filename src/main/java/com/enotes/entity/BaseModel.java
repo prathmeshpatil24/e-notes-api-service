@@ -1,33 +1,44 @@
 package com.enotes.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+
+import java.time.LocalDateTime;
 import java.util.Date;
 
 
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public class BaseModel {
 
-    @Column(name = "created_by")
+    @CreatedBy
+    @Column(updatable = false, name = "created_by")
     private Integer createdBy;
 
+    @CreatedDate
+    @Column(updatable = false ,name = "created_at")
+    private LocalDateTime createdAt;
+
+    @LastModifiedBy
     @Column(name = "updated_by")
     private Integer updatedBy;
 
-    @Column(name = "created_at")
-    private Date createdAt;
-
+    @LastModifiedDate
     @Column(name = "updated_at")
-    private Date updatedAt;
+    private LocalDateTime updatedAt;
 
     public BaseModel(){}
 
     public BaseModel(
-                     Date updatedAt,
-                     Date createdAt,
+                     LocalDateTime updatedAt,
+                     LocalDateTime createdAt,
                      Integer createdBy,
                      Integer updatedBy
                     ) {
@@ -37,19 +48,19 @@ public class BaseModel {
         this.updatedBy = updatedBy;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

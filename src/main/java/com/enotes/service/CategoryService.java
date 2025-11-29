@@ -17,7 +17,7 @@ public interface CategoryService {
 
     public CategoryResponseModel getCategoryById(Integer categoryId);
 
-    public Boolean deleteCategoryById(Integer categoryId);
+    public Boolean disableCategoryById(Integer categoryId);
 
     public Boolean updateCategoryById(Integer categoryId, CategoryRequestModel categoryRequestModel);
 }
