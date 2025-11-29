@@ -32,10 +32,13 @@ public class CategoryRequestModel {
     public void setDescription(String description) {
         this.description = description;
     }
+
+
     public Boolean getIsActive() {
         return isActive;
     }
-    public void setActive(Boolean  isActive) {
+
+    public void setActive(Boolean isActive) {
         this.isActive = isActive;
     }
 }

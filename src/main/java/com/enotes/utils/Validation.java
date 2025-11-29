@@ -11,6 +11,7 @@ import java.util.Map;
 @Component
 public class Validation {
 
+    //category validation
     public void categoryValidation(CategoryRequestModel categoryRequestModel) {
 
         Map<String, Object> error = new LinkedHashMap<>();
@@ -60,6 +61,55 @@ public class Validation {
 
     }
 
+    // notes validation
+    public void notesValidation(NotesRequestModel notesRequestModel) {
+        Map<String, Object> error = new LinkedHashMap<>();
+
+        // Validate request object
+        if (ObjectUtils.isEmpty(notesRequestModel)) {
+            throw new IllegalArgumentException("Notes Object/JSON shouldn't be null or empty");
+        }
+
+        // Validate title
+        if (ObjectUtils.isEmpty(notesRequestModel.getTitle())) {
+            error.put("title", "Title is required");
+        } else {
+            if (notesRequestModel.getTitle().length() < 5) {
+                error.put("title", "Title length min 5 characters");
+            }
+            if (notesRequestModel.getTitle().length() > 100) {
+                error.put("title", "Title length max 100 characters");
+            }
+        }
+
+        // Validate description
+        if (ObjectUtils.isEmpty(notesRequestModel.getDescription())) {
+            error.put("description", "Description is required");
+        } else {
+            if (notesRequestModel.getDescription().length() < 10) {
+                error.put("description", "Description length min 10 characters");
+            }
+            if (notesRequestModel.getDescription().length() > 2000) {
+                error.put("description", "Description length max 500 characters");
+            }
+        }
+
+        // Validate category object
+        if (ObjectUtils.isEmpty(notesRequestModel.getCategory())) {
+            error.put("category", "Category object is required");
+        } else {
+            if (ObjectUtils.isEmpty(notesRequestModel.getCategory().getId())) {
+                error.put("categoryId", "Category ID is required");
+            }
+            if (ObjectUtils.isEmpty(notesRequestModel.getCategory().getName())) {
+                error.put("categoryName", "Category name is required");
+            }
+        }
+
+        if (!error.isEmpty()) {
+            throw new ValidationException(error);
+        }
+    }
 
 
 }

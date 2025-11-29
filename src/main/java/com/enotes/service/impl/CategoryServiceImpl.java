@@ -42,14 +42,14 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category category = new Category();
         //setting value from request model to entity
-        category.setName(categoryRequestModel.getName());
-        category.setDescription(categoryRequestModel.getDescription());
-        category.setIsActive(categoryRequestModel.getIsActive());
+        category.setName(categoryRequestModel.getName().trim());
+        category.setDescription(categoryRequestModel.getDescription().trim());
+        category.setIsActive(true); // new category is active by default
 
         //setting default value
-        category.setIsDeleted(false);//not deleted
-        category.setCreatedBy(2);//Admin
-        category.setCreatedAt(new Date());
+//        category.setIsDeleted(false);//not deleted
+//        category.setCreatedBy(2);//Admin
+//        category.setCreatedAt(new Date());
 
         System.out.println(category.toString());
             try {
@@ -61,9 +61,9 @@ public class CategoryServiceImpl implements CategoryService {
                 response.setName(savedCategory.getName());
                 response.setDescription(savedCategory.getDescription());
                 response.setActive(savedCategory.getIsActive());
-                response.setDeleted(savedCategory.getIsDeleted());
-                response.setCreatedBy(savedCategory.getCreatedBy());
-                response.setCreatedAt(savedCategory.getCreatedAt());
+//                response.setDeleted(savedCategory.getIsDeleted());
+//                response.setCreatedBy(savedCategory.getCreatedBy());
+//                response.setCreatedAt(savedCategory.getCreatedAt());
 
                 return response;
 
@@ -75,7 +75,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    //this will give all category including deleted and not deleted
+    //this will give all category including deleted and not deleted (Active and Inactive)
     public List<CategoryResponseModel> getAllCategory() {
         List<Category> categories = categoryRepo.findAll();
 
@@ -92,11 +92,11 @@ public class CategoryServiceImpl implements CategoryService {
             categoryResponseModel.setName(category.getName());
             categoryResponseModel.setDescription(category.getDescription());
             categoryResponseModel.setActive(category.getIsActive());
-            categoryResponseModel.setDeleted(category.getIsDeleted());
+//            categoryResponseModel.setDeleted(category.getIsDeleted());
             categoryResponseModel.setCreatedBy(category.getCreatedBy());
             categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
-            categoryResponseModel.setCreatedAt(category.getCreatedAt());
-            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+//            categoryResponseModel.setCreatedAt(category.getCreatedAt());
+//            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
 
             return categoryResponseModel;
         }).toList();
@@ -105,10 +105,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<ActiveCategoryModel> getOnlyActiveCategory() {
-        List<Category> categories = categoryRepo.findByIsActiveTrueAndIsDeletedFalse();
+        List<Category> categories = categoryRepo.findByIsActiveTrue();
 
         if (categories.isEmpty()){
-            throw new CategoryListException("No Categories found where isActive is True and isDeleted False, category list is empty for this condition");
+            throw new CategoryListException("No Categories found where isActive is True");
 
         }
 
@@ -128,7 +128,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponseModel getCategoryById(Integer categoryId) {
-        Category category = categoryRepo.findByIdAndIsDeletedFalse(categoryId)
+        Category category = categoryRepo.findById(categoryId)
                 .orElseThrow(() ->  new CategoryNotFoundException(categoryId));
 
         CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
@@ -136,75 +136,87 @@ public class CategoryServiceImpl implements CategoryService {
         categoryResponseModel.setName(category.getName());
         categoryResponseModel.setDescription(category.getDescription());
         categoryResponseModel.setActive(category.getIsActive());
-        categoryResponseModel.setDeleted(category.getIsDeleted());
+//        categoryResponseModel.setDeleted(category.getIsDeleted());
         categoryResponseModel.setCreatedBy(category.getCreatedBy());
         categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
-        categoryResponseModel.setCreatedAt(category.getCreatedAt());
-        categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+//        categoryResponseModel.setCreatedAt(category.getCreatedAt());
+//        categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
 
         return categoryResponseModel;
     }
 
     @Override
-    public Boolean deleteCategoryById(Integer categoryId) {
-        Category existingCategory = categoryRepo.findByIdAndIsActiveTrueAndIsDeletedFalse(categoryId)
-                .orElseThrow(() ->  new CategoryNotFoundException("category is inactive or already deleted with id:- " + categoryId));
+    public Boolean disableCategoryById(Integer categoryId) {
 
-        existingCategory.setIsDeleted(true);
-        existingCategory.setIsActive(false);
+        // Fetch category by ID (admin can disable any existing category)
+        Category category = categoryRepo.findById(categoryId)
+                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
+
+        // If already inactive → no need to disable again
+        if (!category.getIsActive()) {
+            throw new SaveFailedException("Category with id " + categoryId + " is already inactive.");
+        }
+
+        // Disable category
+        category.setIsActive(false);
+
         try {
-            Category savedCategory = categoryRepo.save(existingCategory);
-
-            if (savedCategory == null || savedCategory.getCategoryId() == null) {
-                throw new SaveFailedException(" For soft delete Category could not be saved due to unknown error");
-            }
+            categoryRepo.save(category);
             return true;
+
         } catch (DataIntegrityViolationException ex) {
-            throw new SaveFailedException("For soft delete Category save failed: duplicate or invalid data", ex);
+            throw new SaveFailedException("Failed to update category due to invalid data.", ex);
+
         } catch (Exception ex) {
-            throw new SaveFailedException("Unexpected error while Soft deleting  category", ex);
+            throw new SaveFailedException("Unexpected error while disabling category.", ex);
         }
     }
 
+
     @Override
     public Boolean updateCategoryById(Integer categoryId, CategoryRequestModel categoryRequestModel) {
-        //check validation
-        Category existingCategory = categoryRepo.findByIdAndIsActiveTrueAndIsDeletedFalse(categoryId)
+
+        //check validation and fetch existing category
+        Category existingCategory = categoryRepo.findById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException(categoryId));
 
 
+        //update name
         if (categoryRequestModel.getName() != null) {
+
+            String newCategoryName = categoryRequestModel.getName().trim();
+
             //check duplicate category name
-            categoryRepo.findByName(categoryRequestModel.getName().trim())
-                    .ifPresent(category -> {
-                        throw new DataIntegrityViolationException("Category with name '" + categoryRequestModel.getName() + "' already exists.");
+            categoryRepo.findByName(newCategoryName)
+                    .ifPresent(existing -> {
+                        if (!existing.getCategoryId().equals(categoryId)) {
+                            throw new DataIntegrityViolationException(
+                                    "Category with name '" + newCategoryName + "' already exists."
+                            );
+                        }
                     });
-            existingCategory.setName(categoryRequestModel.getName());
+
+            existingCategory.setName(newCategoryName);
         }
+
+        // ----- Update Description -----
         if (categoryRequestModel.getDescription() != null) {
-            existingCategory.setDescription(categoryRequestModel.getDescription());
+            existingCategory.setDescription(categoryRequestModel.getDescription().trim());
         }
-        if (categoryRequestModel.getIsActive()== true || categoryRequestModel.getIsActive() == false) {
-            existingCategory.setIsActive(categoryRequestModel.getIsActive());
+
+        // ----- Update Active Status -----
+        Boolean active = categoryRequestModel.getIsActive();
+        if (active != null) {
+            existingCategory.setIsActive(active);
         }else {
-            throw new RuntimeException("isActive field is required and should be true or false");
+                throw new RuntimeException("isActive field is required and should be true or false");
         }
 
-        //check duplicate category name
-        categoryRepo.findByName(categoryRequestModel.getName().trim())
-                .ifPresent(category -> {
-                    throw new DataIntegrityViolationException("Category with name '" + categoryRequestModel.getName() + "' already exists.");
-                });
+//        //setting default value
+//        existingCategory.setUpdatedBy(2);//admin
+//        existingCategory.setUpdatedAt(new Date());
 
-        //setting new value from request model to entity after validation
-        existingCategory.setName(categoryRequestModel.getName());
-        existingCategory.setDescription(categoryRequestModel.getDescription());
-        existingCategory.setIsActive(categoryRequestModel.getIsActive());
-
-        //setting default value
-        existingCategory.setUpdatedBy(2);//admin
-        existingCategory.setUpdatedAt(new Date());
-
+        //save updated category
         try {
             Category updateCategory = categoryRepo.save(existingCategory);
             return true;
