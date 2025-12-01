@@ -1,6 +1,7 @@
 package com.enotes.utils;
 
 import com.enotes.dto.CategoryRequestModel;
+import com.enotes.dto.NotesRequestModel;
 import com.enotes.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -71,39 +72,33 @@ public class Validation {
         }
 
         // Validate title
-        if (ObjectUtils.isEmpty(notesRequestModel.getTitle())) {
+        if (ObjectUtils.isEmpty(notesRequestModel.getNoteTitle())) {
             error.put("title", "Title is required");
         } else {
-            if (notesRequestModel.getTitle().length() < 5) {
+            if (notesRequestModel.getNoteTitle().length() < 5) {
                 error.put("title", "Title length min 5 characters");
             }
-            if (notesRequestModel.getTitle().length() > 100) {
+            if (notesRequestModel.getNoteTitle().length() > 100) {
                 error.put("title", "Title length max 100 characters");
             }
         }
 
         // Validate description
-        if (ObjectUtils.isEmpty(notesRequestModel.getDescription())) {
+        if (ObjectUtils.isEmpty(notesRequestModel.getNoteDescription())) {
             error.put("description", "Description is required");
         } else {
-            if (notesRequestModel.getDescription().length() < 10) {
+            if (notesRequestModel.getNoteDescription().length() < 10) {
                 error.put("description", "Description length min 10 characters");
             }
-            if (notesRequestModel.getDescription().length() > 2000) {
+            if (notesRequestModel.getNoteDescription().length() > 500) {
                 error.put("description", "Description length max 500 characters");
             }
         }
 
         // Validate category object
-        if (ObjectUtils.isEmpty(notesRequestModel.getCategory())) {
-            error.put("category", "Category object is required");
-        } else {
-            if (ObjectUtils.isEmpty(notesRequestModel.getCategory().getId())) {
-                error.put("categoryId", "Category ID is required");
-            }
-            if (ObjectUtils.isEmpty(notesRequestModel.getCategory().getName())) {
-                error.put("categoryName", "Category name is required");
-            }
+        if (ObjectUtils.isEmpty(notesRequestModel.getCategoryId())) {
+            error.put("category", "Category Id is required");
+
         }
 
         if (!error.isEmpty()) {

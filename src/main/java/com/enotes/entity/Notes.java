@@ -17,7 +17,6 @@ public class Notes extends BaseModel {
     @Column(name = "notes_id")
     private  Integer id;
 
-
     @Column(name = "notes_title")
     private String title;
 
