@@ -190,4 +190,14 @@ public class NotesServiceImpl implements NotesService {
 
         return dto;
     }
+
+    @Override
+    public void softDeleteNotesById(Integer notesId) {
+
+    }
+
+    @Override
+    public void hardDeleteNotesById(Integer notesId) {
+
+    }
 }

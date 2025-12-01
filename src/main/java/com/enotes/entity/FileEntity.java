@@ -21,6 +21,9 @@ public class FileEntity extends BaseModel {
     @Column(name = "file_size")
     private Double fileSize;
 
+    @Column(name = "isDeleted", nullable = false)
+    private Boolean isDeleted = false;
+
     @ManyToOne
     @JoinColumn(name = "notes_id")
     @JsonBackReference
@@ -30,11 +33,13 @@ public class FileEntity extends BaseModel {
                       String fileName,
                       String filePath,
                       Double fileSize,
+                      Boolean isDeleted,
                       Notes notes) {
         this.fileId = fileId;
         this.fileName = fileName;
         this.filePath = filePath;
         this.fileSize = fileSize;
+        this.isDeleted = isDeleted;
         this.notes = notes;
     }
 
@@ -67,6 +72,14 @@ public class FileEntity extends BaseModel {
 
     public void setFileSize(Double fileSize) {
         this.fileSize = fileSize;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
     public Notes getNotes() {

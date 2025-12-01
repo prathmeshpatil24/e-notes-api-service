@@ -139,7 +139,14 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(String fileName) {
+    public void softDeleteFile(Integer fileId) {
 
     }
+
+    @Override
+    public void hardDeleteFile(Integer fileId) {
+
+    }
+
+
 }

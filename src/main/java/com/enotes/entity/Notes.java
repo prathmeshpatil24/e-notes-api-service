@@ -23,6 +23,10 @@ public class Notes extends BaseModel {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "isDeleted", nullable = false)
+    private Boolean isDeleted = false;
+
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     @JsonBackReference
@@ -38,12 +42,14 @@ public class Notes extends BaseModel {
                  String title,
                  String description,
                  Category category,
+                 Boolean isDeleted,
                  List<FileEntity> fileEntity
     ) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.category = category;
+        this.isDeleted = isDeleted;
         this.fileEntity = fileEntity;
     }
 
@@ -83,6 +89,14 @@ public class Notes extends BaseModel {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
     public List<FileEntity> getFileEntity() {

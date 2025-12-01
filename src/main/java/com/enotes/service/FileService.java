@@ -15,5 +15,7 @@ public interface FileService {
     Resource downloadFile(Integer notesId,String fileName)throws FileNotFoundException,
             IOException;
 
-    void deleteFile(String fileName);
+    void softDeleteFile(Integer fileId);
+
+    void hardDeleteFile(Integer fileId);
 }

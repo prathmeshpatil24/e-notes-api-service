@@ -20,4 +20,8 @@ public interface NotesService {
 
      //get whole details of notes with notes id
     NotesFullDetailResponse getNotesFullDetailsByNotesId(Integer notesId);
+
+    void softDeleteNotesById(Integer notesId);
+
+    void hardDeleteNotesById(Integer notesId);
 }
