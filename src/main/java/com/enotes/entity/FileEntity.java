@@ -1,5 +1,6 @@
 package com.enotes.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -24,10 +25,11 @@ public class FileEntity {
     private String filePath;
 
     @Column(name = "file_size")
-    private Double fileSize;
+    private Long fileSize;
 
     @ManyToOne
     @JoinColumn(name = "notes_id")
+    @JsonBackReference
     private Notes notes;
 
     public FileEntity(Integer fileId,
@@ -35,7 +37,7 @@ public class FileEntity {
                       String originalFileName,
                       String displayFileName,
                       String filePath,
-                      Double fileSize,
+                      Long fileSize,
                       Notes notes) {
         this.fileId = fileId;
         this.uploadFileName = uploadFileName;
@@ -89,11 +91,11 @@ public class FileEntity {
         this.filePath = filePath;
     }
 
-    public Double getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(Double fileSize) {
+    public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
     }
 

@@ -1,7 +1,10 @@
 package com.enotes.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -23,10 +26,14 @@ public class Notes extends BaseModel {
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @JsonBackReference
     private Category category;
 
-    @OneToMany(mappedBy = "notes", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<FileEntity> fileEntity;
+    @OneToMany(mappedBy = "notes",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<FileEntity> fileEntity = new ArrayList<>();
 
     public Notes(Integer id,
                  String title,

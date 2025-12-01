@@ -1,7 +1,11 @@
 package com.enotes.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
@@ -30,6 +34,11 @@ public class Category extends BaseModel {
 //    @Column(name = "is_deleted")
 //    private  Boolean isDeleted;
 
+    @OneToMany(mappedBy = "category",
+//            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Notes> notes = new ArrayList<>();
 
     public Category(Integer id,
                     String name,
@@ -85,6 +94,14 @@ public class Category extends BaseModel {
 
     public void setIsActive(Boolean active) {
         isActive = active;
+    }
+
+    public List<Notes> getNotesList() {
+        return notes;
+    }
+
+    public void setNotes(List<Notes> notes) {
+        this.notes = notes;
     }
 
     @Override
