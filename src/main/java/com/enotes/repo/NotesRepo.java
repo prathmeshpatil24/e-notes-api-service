@@ -14,4 +14,5 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
   Optional<Notes>findByTitle(String notesTitle);
 
   Page<Notes>findByCreatedBy(Integer userId ,Pageable pageable);
+
 }

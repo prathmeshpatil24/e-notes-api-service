@@ -1,9 +1,7 @@
 package com.enotes.service.impl;
 
 
-import com.enotes.dto.NotesListResponseModel;
-import com.enotes.dto.NotesRequestModel;
-import com.enotes.dto.PaginationResponse;
+import com.enotes.dto.*;
 import com.enotes.entity.Category;
 import com.enotes.entity.Notes;
 import com.enotes.exceptions.InvalidPaginationParameterException;
@@ -20,6 +18,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class NotesServiceImpl implements NotesService {
 
@@ -34,7 +36,7 @@ public class NotesServiceImpl implements NotesService {
 
 
     @Override
-    public NotesRequestModel createNotes(NotesRequestModel notesRequestModel) {
+    public Notes createNotes(NotesRequestModel notesRequestModel) {
         //validation
         validation.notesValidation(notesRequestModel);
 
@@ -58,7 +60,7 @@ public class NotesServiceImpl implements NotesService {
 
         Notes saved = notesRepo.save(notes);
 
-        return notesRequestModel;
+        return saved;
 
         } catch (DataIntegrityViolationException ex) {
             throw new SaveFailedException("Notes save failed: duplicate or invalid data," +  ex);
@@ -117,5 +119,75 @@ public class NotesServiceImpl implements NotesService {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public Notes updateNotes(Integer notesId, NotesRequestModel notesRequestModel) {
+
+        //fetch existing notes
+        Notes existingNotes = notesRepo.findById(notesId)
+                .orElseThrow(() -> new RuntimeException("Notes not found with ID: " + notesId));
+        try{
+
+        String notesTitle = notesRequestModel.getNoteTitle();
+        String notesDescription = notesRequestModel.getNoteDescription();
+        Integer categoryId = notesRequestModel.getCategoryId();
+
+        if (notesTitle != null && !notesTitle.isBlank()){
+            existingNotes.setTitle(notesTitle.trim());
+        }
+        if (notesDescription != null && !notesDescription.isBlank()){
+            existingNotes.setDescription(notesDescription.trim());
+        }
+        if (categoryId != null ){
+            // fetch and set category into notes
+            Category category = categoryRepo.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + notesRequestModel.getCategoryId()));
+
+            existingNotes.setCategory(category);
+        }
+
+        //updated notes
+            return notesRepo.save(existingNotes);
+
+        } catch (DataIntegrityViolationException ex) {
+            throw new SaveFailedException("Notes update failed: duplicate or invalid data," +  ex);
+        } catch (Exception ex) {
+            throw new SaveFailedException("Unexpected error while updating updating the notes" + ex);
+        }
+    }
+
+    @Override
+    public NotesFullDetailResponse getNotesFullDetailsByNotesId(Integer notesId) {
+        //fetch existing notes
+        Notes existingNotes = notesRepo.findById(notesId)
+                .orElseThrow(() -> new RuntimeException("Notes not found with ID: " + notesId));
+
+        //map entity to dto
+        NotesFullDetailResponse dto = new NotesFullDetailResponse();
+        dto.setNotesId(existingNotes.getId());
+        dto.setTitle(existingNotes.getTitle());
+        dto.setDescription(existingNotes.getDescription());
+        dto.setCategoryName(existingNotes.getCategory().getName());
+        dto.setCreatedAt(existingNotes.getCreatedAt());
+        dto.setUpdateAt(existingNotes.getUpdatedAt());
+
+        //map file details
+        if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
+
+            List<FileDetailsResponse> fileDetailsResponses = existingNotes.getFileEntity()
+                    .stream()
+                    .map(
+                            fileEntity -> {
+                                FileDetailsResponse fileDto = new FileDetailsResponse();
+                                fileDto.setFileId(fileEntity.getFileId());
+                                fileDto.setFileName(fileEntity.getFileName());
+                                fileDto.setFileSize(fileEntity.getFileSize());
+                                return fileDto;
+                            }).collect(Collectors.toList());
+            dto.setFiles(fileDetailsResponses);
+        }
+
+        return dto;
     }
 }

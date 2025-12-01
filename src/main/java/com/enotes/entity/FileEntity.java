@@ -5,27 +5,21 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "file_details")
-public class FileEntity {
+public class FileEntity extends BaseModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "file_id")
     private  Integer fileId;
 
-    @Column(name = "upload_file_name")
-    private String uploadFileName;
-
-    @Column(name = "original_file_name")
-    private String originalFileName;
-
-    @Column(name = "display_file_name")
-    private String displayFileName;
+    @Column(name = "file_name")
+    private String fileName;
 
     @Column(name = "file_path")
     private String filePath;
 
     @Column(name = "file_size")
-    private Long fileSize;
+    private Double fileSize;
 
     @ManyToOne
     @JoinColumn(name = "notes_id")
@@ -33,16 +27,12 @@ public class FileEntity {
     private Notes notes;
 
     public FileEntity(Integer fileId,
-                      String uploadFileName,
-                      String originalFileName,
-                      String displayFileName,
+                      String fileName,
                       String filePath,
-                      Long fileSize,
+                      Double fileSize,
                       Notes notes) {
         this.fileId = fileId;
-        this.uploadFileName = uploadFileName;
-        this.originalFileName = originalFileName;
-        this.displayFileName = displayFileName;
+        this.fileName = fileName;
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.notes = notes;
@@ -55,32 +45,12 @@ public class FileEntity {
         return fileId;
     }
 
-    public void setFileId(Integer fileId) {
-        this.fileId = fileId;
+    public String getFileName() {
+        return fileName;
     }
 
-    public String getUploadFileName() {
-        return uploadFileName;
-    }
-
-    public void setUploadFileName(String uploadFileName) {
-        this.uploadFileName = uploadFileName;
-    }
-
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-
-    public void setOriginalFileName(String originalFileName) {
-        this.originalFileName = originalFileName;
-    }
-
-    public String getDisplayFileName() {
-        return displayFileName;
-    }
-
-    public void setDisplayFileName(String displayFileName) {
-        this.displayFileName = displayFileName;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public String getFilePath() {
@@ -91,11 +61,11 @@ public class FileEntity {
         this.filePath = filePath;
     }
 
-    public Long getFileSize() {
+    public Double getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(Long fileSize) {
+    public void setFileSize(Double fileSize) {
         this.fileSize = fileSize;
     }
 

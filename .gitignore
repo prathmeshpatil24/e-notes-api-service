@@ -41,3 +41,5 @@ logs/
 
 # Ignore uploaded files (images, documents, etc.)
 uploadsFiles/
+
+apiDesign.txt

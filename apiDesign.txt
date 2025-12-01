@@ -1,0 +1,61 @@
+
+
+PUT    /notes/{id}                     --> Update title, desc, category
+POST   /notes/{id}/files               --> Upload multiple files
+DELETE /notes/{id}/files/{fileId}      --> Delete one file
+GET    /notes/{id}                     --> Get full notes detail
+GET    /notes                          --> List notes (paginated)
+
+🟢 1️⃣ API: UPDATE Notes (title, description, category)
+PUT /notes/{noteId}
+
+Incoming: JSON only.
+
+{
+  "noteTitle": "Updated Java Basics",
+  "noteDescription": "Improved description",
+  "categoryId": 4
+}
+
+Purpose:
+
+Update title
+
+Update description
+
+Update category
+
+Does NOT touch files.
+🟢 2️⃣ API: UPLOAD New Files for an Existing Note
+POST /notes/{noteId}/files
+
+Multipart-form-data:
+
+files: file1.jpg, file2.pdf, file3.png
+
+Purpose:
+
+Add NEW files to existing note
+
+Does NOT delete existing files
+
+Does NOT modify title/description
+
+🟢 3️⃣ API: DELETE Existing File
+DELETE /notes/{noteId}/files/{fileId}
+Purpose:
+
+Remove a file
+
+Does NOT delete note
+
+Does NOT delete other files
+
+🟢 4️⃣ OPTIONAL: REPLACE a File
+PUT /notes/{noteId}/files/{fileId}
+
+Purpose:
+
+Replace old file with new file
+
+Keep note intact
