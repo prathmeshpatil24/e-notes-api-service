@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -13,6 +14,12 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
   Optional<Notes>findByTitle(String notesTitle);
 
-  Page<Notes>findByCreatedBy(Integer userId ,Pageable pageable);
+  Optional<Notes>findByIdAndIsDeletedFalse(Integer notesId);
+
+  Page<Notes>findByCreatedByAndIsDeletedFalse(Integer userId ,Pageable pageable);
+
+  Optional<Notes>findByIdAndIsDeletedTrue(Integer notesId);
+
+  List<Notes> findAllByDeletedTrue();
 
 }

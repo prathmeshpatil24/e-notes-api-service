@@ -24,4 +24,6 @@ public interface NotesService {
     void softDeleteNotesById(Integer notesId);
 
     void hardDeleteNotesById(Integer notesId);
+
+    void emptyRecycleBin();
 }

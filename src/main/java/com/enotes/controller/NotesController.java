@@ -153,4 +153,89 @@ public class NotesController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("File not found: " + fileName);
         }
     }
+
+    @DeleteMapping("{notesId}/move-to-trash")
+    public ResponseEntity<?> softDeleteNotesById(@PathVariable Integer notesId){
+        try {
+            notesService.softDeleteNotesById(notesId);
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "Notes moved to trash successfully with ID: " + notesId,
+                    "status", HttpStatus.OK
+            ));
+        } catch (Exception e) {
+            System.out.println("Error soft deleting notes: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Failed to move trash in trash with ID: " + notesId,
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+            ));
+        }
+    }
+
+
+    @DeleteMapping("/{notesId}/move-to-trash/file/{fileId}")
+    public ResponseEntity<?> softDeleteFileByFileIdAndNotesId(@PathVariable Integer notesId,@PathVariable Integer fileId) {
+        try {
+            fileService.softDeleteFile(fileId, notesId);
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "File moved to trash successfully with fileId: " + fileId,
+                    "status", HttpStatus.OK
+            ));
+        } catch (Exception e) {
+            System.out.println("Error soft deleting file: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Failed to move file in trash. ",
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+            ));
+        }
+    }
+
+    @DeleteMapping("/recycle-bin/{notesId}/delete-permanently")
+    public ResponseEntity<?>hardDeleteNotesById(@PathVariable Integer notesId){
+        try {
+            notesService.hardDeleteNotesById(notesId);
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "Notes deleted permanently with ID: " + notesId,
+                    "status", HttpStatus.OK
+            ));
+        } catch (Exception e) {
+            System.out.println("Error hard deleting notes: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Failed to delete notes permanently with ID: " + notesId,
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+            ));
+        }
+    }
+
+    @DeleteMapping("/recycle-bin/file/{fileId}/delete-permanently")
+    public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer fileId){
+        try {
+            fileService.hardDeleteFile(fileId);
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "File deleted permanently with ID: " + fileId,
+                    "status", HttpStatus.OK
+            ));
+        } catch (Exception e) {
+            System.out.println("Error hard deleting file: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Failed to delete file permanently with ID: " + fileId,
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+            ));
+        }
+    }
+
+    @DeleteMapping("/recycle-bin/empty")
+    public ResponseEntity<?> emptyRecycleBin() {
+        try {
+            notesService.emptyRecycleBin();
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "Recycle bin emptied successfully!",
+                    "status", HttpStatus.OK
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Error while emptying recycle bin",
+                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+            ));
+        }
+    }
 }

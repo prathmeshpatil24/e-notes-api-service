@@ -112,7 +112,7 @@ public class FileServiceImpl implements FileService {
     public Resource downloadFile(Integer notesId,String fileName) throws FileNotFoundException, IOException {
         // Step 1: Find file entry in DB
 
-        FileEntity fileEntity = fileRepo.findByNotesIdAndFileName(notesId, fileName)
+        FileEntity fileEntity = fileRepo.findByNotesIdAndFileNameAndIsDeletedFalse(notesId, fileName)
                 .orElseThrow(() -> new FileNotFoundException("File not found in database or notesId: " + fileName + notesId));
 
 //        FileEntity fileEntity = fileRepo.findByFileName(fileName)
@@ -139,12 +139,47 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void softDeleteFile(Integer fileId) {
+    public void softDeleteFile(Integer fileId, Integer notesId) {
+        FileEntity existingFileEntity = fileRepo.findByIdAndNotesIdAndIsDeletedFalse(fileId,notesId).orElseThrow(() ->
+                new RuntimeException("File not found with id:- " + fileId)
+        );
+        try {
+            // Soft delete file
+            existingFileEntity.setDeleted(true);
 
+            // Save the changes
+            fileRepo.save(existingFileEntity);
+
+        } catch (Exception e) {
+            System.out.println("Error:- " + e.getMessage());
+            throw new RuntimeException("Error occurred while moving to recycle bin file with id:- " + fileId);
+        }
     }
 
     @Override
     public void hardDeleteFile(Integer fileId) {
+        FileEntity fileEntity = fileRepo.findById(fileId).orElseThrow(
+                () -> new RuntimeException("File not found with id:- " + fileId)
+        );
+
+        Integer notesId = fileEntity.getNotes().getId();
+
+        FileEntity existingFileEntity = fileRepo.findByIdAndNotesIdAndIsDeletedTrue(fileId,notesId)
+                .orElseThrow(() ->
+                new RuntimeException("File not found with id:- " + fileId)
+        );
+        try {
+            // Delete actual file from disk
+            java.io.File f = new java.io.File(existingFileEntity.getFilePath());
+            if (f.exists()) f.delete();
+
+            // Delete DB record
+            fileRepo.delete(existingFileEntity);
+
+        } catch (RuntimeException e) {
+            System.out.println("Error:- " + e.getMessage());
+            throw new RuntimeException("Error occurred while hard deleting file with id:- " + fileId);
+        }
 
     }
 
