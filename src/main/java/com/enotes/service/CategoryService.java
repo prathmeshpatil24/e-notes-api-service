@@ -3,7 +3,6 @@ package com.enotes.service;
 import com.enotes.dto.ActiveCategoryModel;
 import com.enotes.dto.CategoryRequestModel;
 import com.enotes.dto.CategoryResponseModel;
-import com.enotes.entity.Category;
 
 import java.util.List;
 
@@ -15,9 +14,11 @@ public interface CategoryService {
 
     public List<ActiveCategoryModel> getOnlyActiveCategory();
 
+    public List<ActiveCategoryModel> getOnlyInActiveCategory();
+
     public CategoryResponseModel getCategoryById(Integer categoryId);
 
-    public Boolean disableCategoryById(Integer categoryId);
+    public void disableCategoryById(Integer categoryId);
 
-    public Boolean updateCategoryById(Integer categoryId, CategoryRequestModel categoryRequestModel);
+    public CategoryResponseModel updateCategoryById(Integer categoryId, CategoryRequestModel categoryRequestModel);
 }
