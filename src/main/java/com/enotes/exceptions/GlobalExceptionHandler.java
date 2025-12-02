@@ -20,10 +20,10 @@ public class GlobalExceptionHandler {
                 .body("Something went wrong: " + ex.getMessage());
     }
 
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String>handleValidationException(ValidationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
+//    @ExceptionHandler(ValidationException.class)
+//    public ResponseEntity<String>handleValidationException(ValidationException ex) {
+//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+//    }
 
     @ExceptionHandler(CategoryListException.class)
     public ResponseEntity<String>handleCategoryListException(CategoryListException ex) {

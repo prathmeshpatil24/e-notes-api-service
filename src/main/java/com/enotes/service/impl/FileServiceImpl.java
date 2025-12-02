@@ -140,7 +140,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public void softDeleteFile(Integer fileId, Integer notesId) {
-        FileEntity existingFileEntity = fileRepo.findByIdAndNotesIdAndIsDeletedFalse(fileId,notesId).orElseThrow(() ->
+        FileEntity existingFileEntity = fileRepo.findByFileIdAndNotesIdAndIsDeletedFalse(fileId,notesId).orElseThrow(() ->
                 new RuntimeException("File not found with id:- " + fileId)
         );
         try {
@@ -164,7 +164,7 @@ public class FileServiceImpl implements FileService {
 
         Integer notesId = fileEntity.getNotes().getId();
 
-        FileEntity existingFileEntity = fileRepo.findByIdAndNotesIdAndIsDeletedTrue(fileId,notesId)
+        FileEntity existingFileEntity = fileRepo.findByFileIdAndNotesIdAndIsDeletedTrue(fileId,notesId)
                 .orElseThrow(() ->
                 new RuntimeException("File not found with id:- " + fileId)
         );

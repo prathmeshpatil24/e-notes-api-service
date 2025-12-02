@@ -1,5 +1,6 @@
 package com.enotes.dto;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 public class CategoryResponseModel {
@@ -8,11 +9,10 @@ public class CategoryResponseModel {
     private String name;
     private String description;
     private Boolean isActive;
-    private Boolean isDeleted;
     private Integer createdBy;
     private Integer updatedBy;
-    private Date createdAt;
-    private Date updatedAt;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public CategoryResponseModel() {}
 
@@ -20,17 +20,15 @@ public class CategoryResponseModel {
                                  String name,
                                  String description,
                                  Boolean isActive,
-                                 Boolean isDeleted,
                                  Integer createdBy,
                                  Integer updatedBy,
-                                 Date createdAt,
-                                 Date updatedAt
+                                 LocalDateTime createdAt,
+                                 LocalDateTime updatedAt
     ) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.isActive = isActive;
-        this.isDeleted = isDeleted;
         this.createdBy = createdBy;
         this.updatedBy = updatedBy;
         this.createdAt = createdAt;
@@ -69,14 +67,6 @@ public class CategoryResponseModel {
         isActive = active;
     }
 
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
-
     public Integer getCreatedBy() {
         return createdBy;
     }
@@ -93,19 +83,19 @@ public class CategoryResponseModel {
         this.updatedBy = updatedBy;
     }
 
-    public Date getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 }

@@ -20,6 +20,6 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
   Optional<Notes>findByIdAndIsDeletedTrue(Integer notesId);
 
-  List<Notes> findAllByDeletedTrue();
+  List<Notes> findAllByIsDeletedTrue();
 
 }

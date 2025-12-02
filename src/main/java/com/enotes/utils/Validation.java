@@ -25,11 +25,12 @@ public class Validation {
             if (ObjectUtils.isEmpty(categoryRequestModel.getName())) {
                 error.put("name", "name field is empty or null");
             } else {
-                if (categoryRequestModel.getName().length() < 5) {
-                    error.put("name", "name length min 10");
-                }
-                if (categoryRequestModel.getName().length() > 100) {
-                    error.put("name", "name length max 100");
+                String name = categoryRequestModel.getName();
+
+                if (name.length() < 2) {
+                    error.put("name", "name length must be at least 2 characters");
+                } else if (name.length() > 100) {
+                    error.put("name", "name length must not exceed 100 characters");
                 }
             }
 
@@ -49,8 +50,8 @@ public class Validation {
             if (ObjectUtils.isEmpty(categoryRequestModel.getIsActive())) {
                 error.put("isActive", "isActive field is empty or null, it should be true or false");
             } else {
-                if (categoryRequestModel.getIsActive() != Boolean.TRUE.booleanValue()
-                        && categoryRequestModel.getIsActive() != Boolean.FALSE.booleanValue()) {
+                Boolean isActive = categoryRequestModel.getIsActive();
+                if (isActive == null) {
                     error.put("isActive", "invalid value isActive field, it should be true or false");
                 }
             }

@@ -46,10 +46,6 @@ public class CategoryServiceImpl implements CategoryService {
         category.setDescription(categoryRequestModel.getDescription().trim());
         category.setIsActive(true); // new category is active by default
 
-        //setting default value
-//        category.setIsDeleted(false);//not deleted
-//        category.setCreatedBy(2);//Admin
-//        category.setCreatedAt(new Date());
 
         System.out.println(category.toString());
             try {
@@ -61,9 +57,6 @@ public class CategoryServiceImpl implements CategoryService {
                 response.setName(savedCategory.getName());
                 response.setDescription(savedCategory.getDescription());
                 response.setActive(savedCategory.getIsActive());
-//                response.setDeleted(savedCategory.getIsDeleted());
-//                response.setCreatedBy(savedCategory.getCreatedBy());
-//                response.setCreatedAt(savedCategory.getCreatedAt());
 
                 return response;
 
@@ -75,16 +68,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    //this will give all category including deleted and not deleted (Active and Inactive)
+    //this will give all category including Active and Inactive
     public List<CategoryResponseModel> getAllCategory() {
         List<Category> categories = categoryRepo.findAll();
 
         if (categories.isEmpty() ){
             throw new CategoryListException("No Categories found, category list is empty");
-
         }
 
-        List<CategoryResponseModel> categoryResponseModels = categories.stream()
+        return categories.stream()
                 .map(category -> {
             CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
 
@@ -92,15 +84,13 @@ public class CategoryServiceImpl implements CategoryService {
             categoryResponseModel.setName(category.getName());
             categoryResponseModel.setDescription(category.getDescription());
             categoryResponseModel.setActive(category.getIsActive());
-//            categoryResponseModel.setDeleted(category.getIsDeleted());
             categoryResponseModel.setCreatedBy(category.getCreatedBy());
             categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
-//            categoryResponseModel.setCreatedAt(category.getCreatedAt());
-//            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+            categoryResponseModel.setCreatedAt(category.getCreatedAt());
+            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
 
             return categoryResponseModel;
         }).toList();
-        return categoryResponseModels;
     }
 
     @Override
@@ -112,7 +102,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         }
 
-        List<ActiveCategoryModel> activeCategoryModelList = categories.stream()
+        return categories.stream()
                 .map(category -> {
                     ActiveCategoryModel activeCategoryModel = new ActiveCategoryModel();
 
@@ -123,26 +113,30 @@ public class CategoryServiceImpl implements CategoryService {
 
                     return activeCategoryModel;
                 }).toList();
-        return activeCategoryModelList;
     }
 
     @Override
     public CategoryResponseModel getCategoryById(Integer categoryId) {
+
         Category category = categoryRepo.findById(categoryId)
-                .orElseThrow(() ->  new CategoryNotFoundException(categoryId));
+                .orElseThrow(() ->  new CategoryNotFoundException("No category found with this id:- " + categoryId));
 
-        CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
-        categoryResponseModel.setId(category.getCategoryId());
-        categoryResponseModel.setName(category.getName());
-        categoryResponseModel.setDescription(category.getDescription());
-        categoryResponseModel.setActive(category.getIsActive());
-//        categoryResponseModel.setDeleted(category.getIsDeleted());
-        categoryResponseModel.setCreatedBy(category.getCreatedBy());
-        categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
-//        categoryResponseModel.setCreatedAt(category.getCreatedAt());
-//        categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+        try {
+            CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
+            categoryResponseModel.setId(category.getCategoryId());
+            categoryResponseModel.setName(category.getName());
+            categoryResponseModel.setDescription(category.getDescription());
+            categoryResponseModel.setActive(category.getIsActive());
+            categoryResponseModel.setCreatedBy(category.getCreatedBy());
+            categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
 
-        return categoryResponseModel;
+
+            return categoryResponseModel;
+        }catch (Exception exception){
+            System.err.println("ERROR in mapping category: " + exception.getMessage());
+            throw new RuntimeException("Unexpected internal error while processing category");
+
+        }
     }
 
     @Override
@@ -212,19 +206,16 @@ public class CategoryServiceImpl implements CategoryService {
                 throw new RuntimeException("isActive field is required and should be true or false");
         }
 
-//        //setting default value
-//        existingCategory.setUpdatedBy(2);//admin
-//        existingCategory.setUpdatedAt(new Date());
 
         //save updated category
         try {
             Category updateCategory = categoryRepo.save(existingCategory);
             return true;
         }catch (DataIntegrityViolationException ex) {
-            throw new SaveFailedException("Category save failed: duplicate or invalid data" + ex);
+            throw new SaveFailedException("Category save failed: duplicate or invalid data", ex);
         }
         catch (Exception ex){
-            throw new SaveFailedException("Unexpected error while updating category" + ex);
+            throw new SaveFailedException("Unexpected error while updating category", ex);
         }
     }
 }

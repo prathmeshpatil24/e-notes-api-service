@@ -255,7 +255,7 @@ public class NotesServiceImpl implements NotesService {
     public void emptyRecycleBin() {
 
         // 1. Delete all soft-deleted FILES (including files from soft-deleted notes)
-        List<FileEntity> deletedFiles = fileRepo.findAllByDeletedTrue();
+        List<FileEntity> deletedFiles = fileRepo.findAllByIsDeletedTrue();
 
         for (FileEntity file : deletedFiles) {
             // Delete file from disk
@@ -267,7 +267,7 @@ public class NotesServiceImpl implements NotesService {
         }
 
         // 2. Delete all soft-deleted NOTES
-        List<Notes> deletedNotes = notesRepo.findAllByDeletedTrue();
+        List<Notes> deletedNotes = notesRepo.findAllByIsDeletedTrue();
 
         for (Notes note : deletedNotes) {
             // Optional: clear file list from note before deleting

@@ -19,7 +19,7 @@ public class Category extends BaseModel {
 
     @Column(name = "category_name")
     @NotBlank(message = "Category name must not be blank")
-    @Size(min = 5, max = 100, message = "Category name must be between 5 and 100 characters")
+    @Size(min = 2, max = 100, message = "Category name must be between 5 and 100 characters")
     private String name;
 
     @Column(name = "description")
@@ -31,9 +31,6 @@ public class Category extends BaseModel {
     @NotNull(message = "isActive must not be null")
     private Boolean isActive;
 
-//    @Column(name = "is_deleted")
-//    private  Boolean isDeleted;
-
     @OneToMany(mappedBy = "category",
 //            cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
@@ -44,14 +41,12 @@ public class Category extends BaseModel {
                     String name,
                     String description,
                     Boolean isActive
-//                    Boolean isDeleted
                     )
     {
         this.id = id;
         this.name = name;
         this.description = description;
         this.isActive = isActive;
-//        this.isDeleted = isDeleted;
     }
 
     public Category() {}
@@ -80,14 +75,6 @@ public class Category extends BaseModel {
         this.name = name;
     }
 
-//    public Boolean getIsDeleted() {
-//        return isDeleted;
-//    }
-//
-//    public void setIsDeleted(Boolean deleted) {
-//        isDeleted = deleted;
-//    }
-
     public Boolean getIsActive() {
         return isActive;
     }
@@ -111,7 +98,6 @@ public class Category extends BaseModel {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\''+
                 "isActive=" + isActive +
-//                ", isDeleted=" + isDeleted +
                 '}';
     }
 }
