@@ -149,7 +149,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    //testing remaining
+
     @Override
     public void softDeleteFile(Integer notesId, Integer fileId)
             throws FileNotFoundException, FileNotesMismatchException {
@@ -159,6 +159,7 @@ public class FileServiceImpl implements FileService {
 
         //match with notesId
         if (!existingFileEntity.getNotes().getId().equals(notesId)) {
+            System.out.println("fileId and notesId Mismatched");
             throw new FileNotesMismatchException(
                     "File with ID " + fileId + " does not belong to notes ID " + notesId
             );
@@ -173,14 +174,14 @@ public class FileServiceImpl implements FileService {
 
             // Save the changes
             fileRepo.save(existingFileEntity);
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.out.println("Error:- " + e.getMessage());
             throw new SoftDeleteFailedException("Error occurred while moving to recycle bin file with id:- " + fileId + " " + e.getMessage());
         }
     }
 
-
+    //testing remaining
     @Override
     public void hardDeleteFile(Integer fileId) {
         FileEntity fileEntity = fileRepo.findById(fileId).orElseThrow(

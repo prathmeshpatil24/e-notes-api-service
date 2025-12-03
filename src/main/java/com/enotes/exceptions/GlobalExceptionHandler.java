@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
@@ -148,7 +149,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FileNotFoundException.class)
     public ResponseEntity<?> handleFileNotFoundException(FileNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of(
                         "status", HttpStatus.BAD_REQUEST.value(),
                         "error", ex.getMessage(),
@@ -156,6 +157,19 @@ public class GlobalExceptionHandler {
                         "timestamp", LocalDateTime.now()
                 ));
     }
+
+    @ExceptionHandler(FileNotesMismatchException.class)
+    public ResponseEntity<?> handleFileNotesMismatchException(FileNotesMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", ex.getMessage(),
+                        "message", "File Id and NotesId Mismatched",
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobal(Exception ex) {

@@ -20,6 +20,10 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
   Optional<Notes>findByIdAndIsDeletedTrue(Integer notesId);
 
-  List<Notes> findAllByIsDeletedTrue();
+  List<Notes>findAllByIsDeletedTrue();
+
+  //recycle bin list
+  List<Notes>findByCreatedByAndIsDeletedTrue(Integer userId);
+//  Page<Notes>findByCreatedByAndIsDeletedTrue(Integer userId ,Pageable pageable);
 
 }

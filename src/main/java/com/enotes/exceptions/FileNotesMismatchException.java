@@ -1,6 +1,8 @@
 package com.enotes.exceptions;
 
-public class FileNotesMismatchException extends Throwable {
-    public FileNotesMismatchException(String s) {
+public class FileNotesMismatchException extends RuntimeException {
+
+    public FileNotesMismatchException(String message) {
+        super(message);
     }
 }

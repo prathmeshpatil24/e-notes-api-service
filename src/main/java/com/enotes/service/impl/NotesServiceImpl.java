@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -119,7 +119,8 @@ public class NotesServiceImpl implements NotesService {
             }
 
             //convert entity page to dto page
-            Page<NotesListResponseModel> notesListResponseModelPage = notePages.map(
+            Page<NotesListResponseModel> notesListResponseModelPage = notePages
+                    .map(
                     note ->
                     {
                         NotesListResponseModel dto = new NotesListResponseModel();
@@ -202,6 +203,7 @@ public class NotesServiceImpl implements NotesService {
 
                List<FileDetailsResponse> fileDetailsResponses = existingNotes.getFileEntity()
                        .stream()
+                       .filter(file -> !file.getIsDeleted()) // Only active files, but if data is large then we need to write here sql query
                        .map(
                                fileEntity -> {
                                    FileDetailsResponse fileDto = new FileDetailsResponse();
@@ -212,6 +214,21 @@ public class NotesServiceImpl implements NotesService {
                                }).collect(Collectors.toList());
                dto.setFiles(fileDetailsResponses);
            }
+
+           /* if data is large then this way is best
+           //FETCH ONLY NON-DELETED FILES FROM DB
+        List<FileEntity> activeFiles = fileRepo.findByNotesIdAndIsDeletedFalse(notesId);
+        List<FileDetailsResponse> fileDtos = activeFiles.stream()
+                .map(file -> {
+                    FileDetailsResponse dtoFile = new FileDetailsResponse();
+                    dtoFile.setFileId(file.getFileId());
+                    dtoFile.setFileName(file.getFileName());
+                    dtoFile.setFileSize(file.getFileSize());
+                    return dtoFile;
+                })
+                .collect(Collectors.toList());
+
+        dto.setFiles(fileDtos);*/
            return dto;
        } catch (Exception e) {
            e.printStackTrace();
@@ -306,4 +323,78 @@ public class NotesServiceImpl implements NotesService {
             notesRepo.delete(note);
         }
     }
+
+    //for single file is remaining
+    @Override
+    public TrashResponse recycleBin(Integer userId) {
+
+            TrashResponse response = new TrashResponse();
+
+           try {
+               //1 Fetch Deleted Notes
+               List<Notes> deletedNotes = notesRepo.findByCreatedByAndIsDeletedTrue(userId);
+
+               if (deletedNotes.isEmpty()){
+                   Collections.emptyList();
+               }
+
+               List<DeletedNotesResponse> deletedNotesResponses = deletedNotes.stream()
+                       .map(note -> {
+                           DeletedNotesResponse dto = new DeletedNotesResponse();
+                           dto.setNotesId(note.getId());
+                           dto.setTitle(note.getTitle());
+                           dto.setDescription(note.getDescription());
+                           dto.setDeletedAt(note.getDeletedAt());
+
+                           // Only deleted files inside deleted notes
+                           List<DeletedFileResponse> deletedFilesInsideNote = note.getFileEntity()
+                                   .stream()
+                                   .filter(FileEntity::getIsDeleted)
+                                   .map(f -> {
+                                       DeletedFileResponse fd = new DeletedFileResponse();
+                                       fd.setFileId(f.getFileId());
+                                       fd.setFileName(f.getFileName());
+                                       fd.setFileSize(f.getFileSize());
+                                       fd.setDeletedAt(f.getDeletedAt());
+                                       return fd;
+                                   })
+                                   .collect(Collectors.toList());
+
+                           dto.setFiles(deletedFilesInsideNote);
+                           return dto;
+                       })
+                       .collect(Collectors.toList());
+
+               response.setDeletedNotes(deletedNotesResponses);
+
+
+               //2 Fetch Deleted Files (of active notes)
+               List<FileEntity> deletedFiles = fileRepo
+                       .findByIsDeletedTrueAndNotes_IsDeletedFalseAndNotes_CreatedBy(userId);
+
+               if (deletedFiles.isEmpty()){
+                   Collections.emptyList();
+               }
+
+               List<DeletedFileResponse> deletedFileResponses = deletedFiles.stream()
+                       .map(f -> {
+                           DeletedFileResponse fd = new DeletedFileResponse();
+                           fd.setFileId(f.getFileId());
+                           fd.setFileName(f.getFileName());
+                           fd.setFileSize(f.getFileSize());
+                           fd.setDeletedAt(f.getDeletedAt());
+                           fd.setNotesId(f.getNotes().getId());
+                           fd.setNotesTitle(f.getNotes().getTitle());
+                           return fd;
+                       })
+                       .collect(Collectors.toList());
+
+               response.setDeletedFiles(deletedFileResponses);
+           } catch (Exception e) {
+               throw new RuntimeException(e);
+           }
+
+            return response;
+        }
+
 }

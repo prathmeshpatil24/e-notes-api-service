@@ -120,7 +120,6 @@ public class NotesController {
                 ));
     }
 
-
     @GetMapping("/getDetails/{notesId}/view-file/{fileName}")
     public ResponseEntity<?> viewFile(@PathVariable Integer notesId, @PathVariable String fileName) throws IOException {
 
@@ -156,7 +155,7 @@ public class NotesController {
             ));
     }
 
-    // testing remaining
+
     @DeleteMapping("/{notesId}/move-to-trash/file/{fileId}")
     public ResponseEntity<?> softDeleteFileByFileIdAndNotesId(@PathVariable Integer notesId,
                                                               @PathVariable Integer fileId)
@@ -168,6 +167,26 @@ public class NotesController {
                     "status", HttpStatus.OK
             ));
 
+    }
+
+    // testing remaining
+    @GetMapping("/recycle-bin")
+    public ResponseEntity<?>getRecycleBin(){
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        TrashResponse recycleBin = notesService.recycleBin(userId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "message", "Recycle bin data",
+                        "data", recycleBin
+                ));
     }
 
     @DeleteMapping("/recycle-bin/{notesId}/delete-permanently")

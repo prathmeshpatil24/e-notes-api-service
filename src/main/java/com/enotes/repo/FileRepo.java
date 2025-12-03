@@ -20,4 +20,16 @@ public interface FileRepo extends JpaRepository<FileEntity, Integer> {
     Optional<FileEntity>findByFileIdAndNotesIdAndIsDeletedTrue(Integer fileId, Integer notesId);
 
     List<FileEntity> findAllByIsDeletedTrue();
+
+    List<FileEntity>findByNotesIdAndIsDeletedFalse(Integer notesId);
+
+//    SELECT f.*
+//    FROM file_entity f
+//    JOIN notes n ON f.notes_id = n.id
+//    WHERE f.is_deleted = true
+//    AND n.is_deleted = false
+//    AND n.created_by = :userId;
+    List<FileEntity>findByIsDeletedTrueAndNotes_IsDeletedFalseAndNotes_CreatedBy(Integer userId);
+
+
 }
