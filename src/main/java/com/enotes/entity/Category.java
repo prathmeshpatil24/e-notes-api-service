@@ -3,11 +3,16 @@ package com.enotes.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "category")
 public class Category extends BaseModel {
@@ -19,7 +24,7 @@ public class Category extends BaseModel {
 
     @Column(name = "category_name")
     @NotBlank(message = "Category name must not be blank")
-    @Size(min = 2, max = 100, message = "Category name must be between 5 and 100 characters")
+    @Size(min = 2, max = 100, message = "Category name must be between 2 and 100 characters")
     private String name;
 
     @Column(name = "description")
@@ -37,67 +42,6 @@ public class Category extends BaseModel {
     @JsonManagedReference
     private List<Notes> notes = new ArrayList<>();
 
-    public Category(Integer id,
-                    String name,
-                    String description,
-                    Boolean isActive
-                    )
-    {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.isActive = isActive;
-    }
-
     public Category() {}
 
-    public Integer getCategoryId() {
-        return id;
-    }
-
-    public void setCategoryId(Integer id) {
-        this.id = id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Boolean getIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(Boolean active) {
-        isActive = active;
-    }
-
-    public List<Notes> getNotesList() {
-        return notes;
-    }
-
-    public void setNotes(List<Notes> notes) {
-        this.notes = notes;
-    }
-
-    @Override
-    public String toString() {
-        return "Category{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\''+
-                "isActive=" + isActive +
-                '}';
-    }
 }

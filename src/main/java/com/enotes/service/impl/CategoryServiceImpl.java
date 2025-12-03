@@ -50,10 +50,10 @@ public class CategoryServiceImpl implements CategoryService {
 
                 // Map entity -> response
                 CategoryResponseModel response = new CategoryResponseModel();
-                response.setId(savedCategory.getCategoryId());
+                response.setId(savedCategory.getId());
                 response.setName(savedCategory.getName());
                 response.setDescription(savedCategory.getDescription());
-                response.setActive(savedCategory.getIsActive());
+                response.setIsActive(savedCategory.getIsActive());
 
                 return response;
 
@@ -76,10 +76,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .map(category -> {
             CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
 
-            categoryResponseModel.setId(category.getCategoryId());
+            categoryResponseModel.setId(category.getId());
             categoryResponseModel.setName(category.getName());
             categoryResponseModel.setDescription(category.getDescription());
-            categoryResponseModel.setActive(category.getIsActive());
+            categoryResponseModel.setIsActive(category.getIsActive());
             categoryResponseModel.setCreatedBy(category.getCreatedBy());
             categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
             categoryResponseModel.setCreatedAt(category.getCreatedAt());
@@ -102,10 +102,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .map(category -> {
                     ActiveCategoryModel activeCategoryModel = new ActiveCategoryModel();
 
-                    activeCategoryModel.setId(category.getCategoryId());
+                    activeCategoryModel.setId(category.getId());
                     activeCategoryModel.setName(category.getName());
                     activeCategoryModel.setDescription(category.getDescription());
-                    activeCategoryModel.setActive(category.getIsActive());
+                    activeCategoryModel.setIsActive(category.getIsActive());
 
                     return activeCategoryModel;
                 }).toList();
@@ -123,10 +123,10 @@ public class CategoryServiceImpl implements CategoryService {
                 .map(category -> {
                     ActiveCategoryModel inActive = new ActiveCategoryModel();
 
-                    inActive.setId(category.getCategoryId());
+                    inActive.setId(category.getId());
                     inActive.setName(category.getName());
                     inActive.setDescription(category.getDescription());
-                    inActive.setActive(category.getIsActive());
+                    inActive.setIsActive(category.getIsActive());
 
                     return inActive;
                 }).toList();
@@ -140,10 +140,10 @@ public class CategoryServiceImpl implements CategoryService {
 
             CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
 
-            categoryResponseModel.setId(category.getCategoryId());
+            categoryResponseModel.setId(category.getId());
             categoryResponseModel.setName(category.getName());
             categoryResponseModel.setDescription(category.getDescription());
-            categoryResponseModel.setActive(category.getIsActive());
+            categoryResponseModel.setIsActive(category.getIsActive());
             categoryResponseModel.setCreatedBy(category.getCreatedBy());
             categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
             categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
@@ -193,7 +193,7 @@ public class CategoryServiceImpl implements CategoryService {
             //check duplicate category name
             categoryRepo.findByName(newCategoryName)
                     .ifPresent(existing -> {
-                        if (!existing.getCategoryId().equals(categoryId)) {
+                        if (!existing.getId().equals(categoryId)) {
                             throw new DataIntegrityViolationException(
                                     "Category with name '" + newCategoryName + "' already exists."
                             );
@@ -216,10 +216,10 @@ public class CategoryServiceImpl implements CategoryService {
             Category savedCategory = categoryRepo.save(existingCategory);
 
             CategoryResponseModel response = new CategoryResponseModel();
-            response.setId(savedCategory.getCategoryId());
+            response.setId(savedCategory.getId());
             response.setName(savedCategory.getName());
             response.setDescription(savedCategory.getDescription());
-            response.setActive(savedCategory.getIsActive());
+            response.setIsActive(savedCategory.getIsActive());
 
             return response;
         }

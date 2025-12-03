@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -65,6 +66,94 @@ public class GlobalExceptionHandler {
                        "error", "Failed to Save",
                         "message", ex.getMessage(),
                      "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(InActiveCategoryException.class)
+    public ResponseEntity<?> handleInActiveCategoryException(InActiveCategoryException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "Failed to Save",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(InvalidPaginationParameterException.class)
+    public ResponseEntity<?> handleInvalidPaginationException(InvalidPaginationParameterException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "Failed to retried",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(NotesListFetchException.class)
+    public ResponseEntity<?> handleNotesListFetchException(NotesListFetchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "Failed to retried",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of(
+                        "status", HttpStatus.UNAUTHORIZED.value(),
+                        "error", "Failed to login",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(NotesNotFoundException.class)
+    public ResponseEntity<?> handleNotesNotFoundException(NotesNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "status", HttpStatus.NOT_FOUND.value(),
+                        "error", "Notes Id not found",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(InvaildInputData.class)
+    public ResponseEntity<?> handleInvalidInputException(InvaildInputData ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "Invalid Input data",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(SoftDeleteFailedException.class)
+    public ResponseEntity<?> handleSoftDeleteException(SoftDeleteFailedException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "status", HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "message", ex.getMessage(),
+                        "error", "Failed to move to recycle bin",
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(FileNotFoundException.class)
+    public ResponseEntity<?> handleFileNotFoundException(FileNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", ex.getMessage(),
+                        "message", "File not found in db",
+                        "timestamp", LocalDateTime.now()
                 ));
     }
 

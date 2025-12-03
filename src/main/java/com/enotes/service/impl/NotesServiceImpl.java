@@ -5,8 +5,7 @@ import com.enotes.dto.*;
 import com.enotes.entity.Category;
 import com.enotes.entity.FileEntity;
 import com.enotes.entity.Notes;
-import com.enotes.exceptions.InvalidPaginationParameterException;
-import com.enotes.exceptions.SaveFailedException;
+import com.enotes.exceptions.*;
 import com.enotes.repo.CategoryRepo;
 import com.enotes.repo.FileRepo;
 import com.enotes.repo.NotesRepo;
@@ -21,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,36 +42,41 @@ public class NotesServiceImpl implements NotesService {
 
 
     @Override
-    public Notes createNotes(NotesRequestModel notesRequestModel) {
+    public Notes createNotes(NotesRequestModel request) {
+
         //validation
-        validation.notesValidation(notesRequestModel);
+        validation.notesValidation(request);
 
         //check duplicate category name
-        notesRepo.findByTitle(notesRequestModel.getNoteTitle().trim())
+        String noteTitle = request.getNoteTitle().trim();
+        notesRepo.findByTitle(noteTitle)
                 .ifPresent(notes -> {
-                    throw new DataIntegrityViolationException("Notes with title '" + notesRequestModel.getNoteTitle() + "' already exists.");
+                    throw new DataIntegrityViolationException("Notes with title '" + noteTitle + "' already exists.");
                 });
 
         // fetch and set category into notes
-        Category category = categoryRepo.findById(notesRequestModel.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with ID: " + notesRequestModel.getCategoryId()));
+        Category category = categoryRepo.findById(request.getCategoryId())
+                .orElseThrow(() -> new CategoryNotFoundException(request.getCategoryId()));
 
-        try {
+        //chack category is acctive or not if category is inactive then show proper message for it
+        // 2. Validate category status
+        if (!category.getIsActive()) {
+            throw new InActiveCategoryException("Cannot create notes under an inactive categoryId: " + category.getId() + ", category name:- " + category.getName());
+        }
 
         Notes notes = new Notes();
         //setting value from request model to entity
-        notes.setTitle(notesRequestModel.getNoteTitle().trim());
-        notes.setDescription(notesRequestModel.getNoteDescription().trim());
+        notes.setTitle(request.getNoteTitle().trim());
+        notes.setDescription(request.getNoteDescription().trim());
         notes.setCategory(category);
 
-        Notes saved = notesRepo.save(notes);
+        try {
 
-        return saved;
+            return notesRepo.save(notes);
 
-        } catch (DataIntegrityViolationException ex) {
-            throw new SaveFailedException("Notes save failed: duplicate or invalid data," +  ex);
         } catch (Exception ex) {
-            throw new SaveFailedException("Unexpected error while saving new Category" + ex);
+            throw new SaveFailedException("Notes save failed:" +  ex);
+
         }
     }
 
@@ -82,18 +87,17 @@ public class NotesServiceImpl implements NotesService {
                                                                         Integer pageSize,
                                                                         String sortBy,
                                                                         String sortDir) {
-
         // Validate pagination params
-
         if (pageNo < 0) {
             throw new InvalidPaginationParameterException("Page index must not be negative");
         }
         if (pageSize <= 0) {
             throw new InvalidPaginationParameterException("Page size must be greater than zero");
         }
-        if (!(sortDir.equalsIgnoreCase("asc") || sortDir.equalsIgnoreCase("desc"))) {
+        if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
             throw new InvalidPaginationParameterException("Sort direction must be 'asc' or 'desc'");
         }
+
         try {
             //created sorting object
             Sort sort = sortDir.equalsIgnoreCase("asc")?
@@ -103,11 +107,19 @@ public class NotesServiceImpl implements NotesService {
             //created pageable object
             Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
 
-            Page<Notes> notePage = notesRepo.findByCreatedByAndIsDeletedFalse(userId, pageable);
+            //notes page details
+            Page<Notes> notePages = notesRepo.findByCreatedByAndIsDeletedFalse(userId, pageable);
 
+            //validate page number does not exceed total pages
+            int totalPages = notePages.getTotalPages();
+            if (totalPages > 0 && pageNo >= totalPages) {
+                throw new InvalidPaginationParameterException(
+                        "Page number " + pageNo + " exceeds the maximum available pages: " + (totalPages - 1)
+                );
+            }
 
             //convert entity page to dto page
-            Page<NotesListResponseModel> notesListResponseModelPage = notePage.map(
+            Page<NotesListResponseModel> notesListResponseModelPage = notePages.map(
                     note ->
                     {
                         NotesListResponseModel dto = new NotesListResponseModel();
@@ -119,47 +131,53 @@ public class NotesServiceImpl implements NotesService {
                         dto.setUpdateAt(note.getUpdatedAt());
                         return dto;
                     });
+            //further add file counts also
 
             return new PaginationResponse<>(notesListResponseModelPage);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (Exception ex) {
+            throw new NotesListFetchException("Failed to fetch notes list. Reason: " + ex.getMessage());
         }
 
     }
 
     @Override
-    public Notes updateNotes(Integer notesId, NotesRequestModel notesRequestModel) {
+    public Notes updateNotes(Integer notesId, NotesRequestModel request) {
 
         //fetch existing notes
         Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(notesId)
-                .orElseThrow(() -> new RuntimeException("Notes not found with ID: " + notesId));
+                .orElseThrow(() -> new NotesNotFoundException(notesId));
+
         try{
+            // title
+            if (request.getNoteTitle() != null) {
+                String title = request.getNoteTitle().trim();
+                 if (title.length()<2 || title.length()>100){
+                     throw new InvaildInputData("title length should be in between 2 to 100");
+                 }
+                    existingNotes.setTitle(title);
+            }
 
-        String notesTitle = notesRequestModel.getNoteTitle();
-        String notesDescription = notesRequestModel.getNoteDescription();
-        Integer categoryId = notesRequestModel.getCategoryId();
-
-        if (notesTitle != null && !notesTitle.isBlank()){
-            existingNotes.setTitle(notesTitle.trim());
-        }
-        if (notesDescription != null && !notesDescription.isBlank()){
-            existingNotes.setDescription(notesDescription.trim());
-        }
-        if (categoryId != null ){
+            // description
+            if (request.getNoteDescription() != null) {
+                String description = request.getNoteDescription().trim();
+                if (description.length()<10 || description.length()>500){
+                    throw new InvaildInputData("description length should be in between 10 to 500");
+                }
+                    existingNotes.setDescription(description);
+            }
+        if (request.getCategoryId() != null ){
             // fetch and set category into notes
-            Category category = categoryRepo.findById(categoryId)
-                    .orElseThrow(() -> new RuntimeException("Category not found with ID: " + notesRequestModel.getCategoryId()));
-
+            Category category = categoryRepo.findById(request.getCategoryId())
+                    .orElseThrow(() -> new CategoryNotFoundException(request.getCategoryId()));
             existingNotes.setCategory(category);
         }
-
-        //updated notes
+             //updated notes
             return notesRepo.save(existingNotes);
 
-        } catch (DataIntegrityViolationException ex) {
-            throw new SaveFailedException("Notes update failed: duplicate or invalid data," +  ex);
+        } catch (InvaildInputData | CategoryNotFoundException ex) {
+            throw new RuntimeException(ex.getMessage());
         } catch (Exception ex) {
-            throw new SaveFailedException("Unexpected error while updating updating the notes" + ex);
+            throw new SaveFailedException("Notes update failed: duplicate or invalid data," +  ex);
         }
     }
 
@@ -167,61 +185,72 @@ public class NotesServiceImpl implements NotesService {
     public NotesFullDetailResponse getNotesFullDetailsByNotesId(Integer notesId) {
         //fetch existing notes
         Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(notesId)
-                .orElseThrow(() -> new RuntimeException("Notes not found with ID: " + notesId));
+                .orElseThrow(() -> new NotesNotFoundException(notesId));
 
-        //map entity to dto
-        NotesFullDetailResponse dto = new NotesFullDetailResponse();
-        dto.setNotesId(existingNotes.getId());
-        dto.setTitle(existingNotes.getTitle());
-        dto.setDescription(existingNotes.getDescription());
-        dto.setCategoryName(existingNotes.getCategory().getName());
-        dto.setCreatedAt(existingNotes.getCreatedAt());
-        dto.setUpdateAt(existingNotes.getUpdatedAt());
+       try {
+           //map entity to dto
+           NotesFullDetailResponse dto = new NotesFullDetailResponse();
+           dto.setNotesId(existingNotes.getId());
+           dto.setTitle(existingNotes.getTitle());
+           dto.setDescription(existingNotes.getDescription());
+           dto.setCategoryName(existingNotes.getCategory().getName());
+           dto.setCreatedAt(existingNotes.getCreatedAt());
+           dto.setUpdateAt(existingNotes.getUpdatedAt());
 
-        //map file details
-        if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
+           //map file details
+           if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
 
-            List<FileDetailsResponse> fileDetailsResponses = existingNotes.getFileEntity()
-                    .stream()
-                    .map(
-                            fileEntity -> {
-                                FileDetailsResponse fileDto = new FileDetailsResponse();
-                                fileDto.setFileId(fileEntity.getFileId());
-                                fileDto.setFileName(fileEntity.getFileName());
-                                fileDto.setFileSize(fileEntity.getFileSize());
-                                return fileDto;
-                            }).collect(Collectors.toList());
-            dto.setFiles(fileDetailsResponses);
-        }
-
-        return dto;
+               List<FileDetailsResponse> fileDetailsResponses = existingNotes.getFileEntity()
+                       .stream()
+                       .map(
+                               fileEntity -> {
+                                   FileDetailsResponse fileDto = new FileDetailsResponse();
+                                   fileDto.setFileId(fileEntity.getFileId());
+                                   fileDto.setFileName(fileEntity.getFileName());
+                                   fileDto.setFileSize(fileEntity.getFileSize());
+                                   return fileDto;
+                               }).collect(Collectors.toList());
+               dto.setFiles(fileDetailsResponses);
+           }
+           return dto;
+       } catch (Exception e) {
+           e.printStackTrace();
+           throw new RuntimeException("Unexpected error" , e);
+       }
     }
 
     @Override
     public void softDeleteNotesById(Integer notesId) {
 
+        // is deleted should be false for moving to recycle bean
         Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(notesId)
                 .orElseThrow(() ->
-                    new RuntimeException("Notes not found with id:- " + notesId)
-        );
+                    new NotesNotFoundException(notesId));
 
         try {
+
             // Soft delete associated files
-            existingNotes.getFileEntity().forEach(
-                    file -> file.setDeleted(true)
-            );
+            existingNotes.getFileEntity()
+                    .forEach(file -> {
+                        file.setIsDeleted(true);
+                        file.setDeletedAt(LocalDateTime.now());
+                    });
+
             // Soft delete notes
-            existingNotes.setDeleted(true);
+            existingNotes.setIsDeleted(true);
+            existingNotes.setDeletedAt(LocalDateTime.now());
 
             // Save the changes
             notesRepo.save(existingNotes);
 
         } catch (Exception e) {
-            System.out.println("Error:- " + e.getMessage());
-            throw new RuntimeException("Error occurred while moving to recycle bin notes with id:- " + notesId);
+            e.printStackTrace();
+            System.out.println("Failed to move notes with id " + notesId + " to recycle bin.");
+            throw new SoftDeleteFailedException("Failed to move notes with id " + notesId + " to recycle bin." + " " + e.getMessage());
         }
     }
 
+    //testing remaining
     @Override
     public void hardDeleteNotesById(Integer notesId) {
         Notes existingNotes = notesRepo.findByIdAndIsDeletedTrue(notesId).orElseThrow(
@@ -235,8 +264,10 @@ public class NotesServiceImpl implements NotesService {
                         // delete associated files from db and storage also
                         // Delete actual file from disk
                         File f = new File(file.getFilePath());
-                        if (f.exists()) f.delete();
+                        if (f.exists()) {
+                            f.delete();
 
+                        }
                         // Delete DB record
                         fileRepo.delete(file);
                     }

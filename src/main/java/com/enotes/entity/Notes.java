@@ -3,11 +3,21 @@ package com.enotes.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "notes")
 public class Notes extends BaseModel {
@@ -18,13 +28,20 @@ public class Notes extends BaseModel {
     private  Integer id;
 
     @Column(name = "notes_title")
+    @NotBlank(message = "Category name must not be blank")
+    @Size(min = 2, max = 100, message = "Title name must be between 2 and 100 characters")
     private String title;
 
     @Column(name = "description")
+    @NotEmpty(message = "Description must not be empty")
+    @Size(min = 10, max = 500, message = "Description must be between 10 and 500 characters")
     private String description;
 
     @Column(name = "isDeleted", nullable = false)
     private Boolean isDeleted = false;
+
+    @Column(name = "deletedAt", nullable = true)
+    private LocalDateTime deletedAt;
 
 
     @ManyToOne
@@ -38,72 +55,6 @@ public class Notes extends BaseModel {
     @JsonManagedReference
     private List<FileEntity> fileEntity = new ArrayList<>();
 
-    public Notes(Integer id,
-                 String title,
-                 String description,
-                 Category category,
-                 Boolean isDeleted,
-                 List<FileEntity> fileEntity
-    ) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.category = category;
-        this.isDeleted = isDeleted;
-        this.fileEntity = fileEntity;
-    }
+    public Notes() {}
 
-
-
-    public Notes() {
-
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
-    }
-
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
-
-    public List<FileEntity> getFileEntity() {
-        return fileEntity;
-    }
-
-    public void setFileEntity(List<FileEntity> fileEntity) {
-        this.fileEntity = fileEntity;
-    }
 }
