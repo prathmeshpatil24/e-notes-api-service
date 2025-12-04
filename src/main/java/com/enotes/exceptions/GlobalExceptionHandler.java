@@ -169,7 +169,17 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+@ExceptionHandler(UserNotesIdException.class)
+    public ResponseEntity<?>handleUserNotesException(UserNotesIdException ex){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "Invalid Data",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
 
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobal(Exception ex) {

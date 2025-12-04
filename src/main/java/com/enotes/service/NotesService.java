@@ -23,9 +23,15 @@ public interface NotesService {
 
     void softDeleteNotesById(Integer notesId);
 
-    void hardDeleteNotesById(Integer notesId);
-
-    void emptyRecycleBin();
-
+    //get all data which is soft deleted and present under recycle bin
     TrashResponse recycleBin(Integer userId);
+
+    //restoring the deleted notes with attached files
+    RestoreNotesResponse restoreNote(Integer noteId, Integer userId);
+
+//    void hardDeleteNotesById(Integer notesId);
+//
+//    void emptyRecycleBin();
+
+
 }

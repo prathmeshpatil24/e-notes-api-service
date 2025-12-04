@@ -3,6 +3,7 @@ package com.enotes.service.impl;
 import com.enotes.cofig.AuditAwareConfig;
 import com.enotes.dto.FileDetailsResponse;
 
+import com.enotes.dto.RestoreFileResponse;
 import com.enotes.entity.FileEntity;
 import com.enotes.entity.Notes;
 import com.enotes.exceptions.*;
@@ -149,7 +150,6 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-
     @Override
     public void softDeleteFile(Integer notesId, Integer fileId)
             throws FileNotFoundException, FileNotesMismatchException {
@@ -179,6 +179,40 @@ public class FileServiceImpl implements FileService {
             System.out.println("Error:- " + e.getMessage());
             throw new SoftDeleteFailedException("Error occurred while moving to recycle bin file with id:- " + fileId + " " + e.getMessage());
         }
+    }
+
+    @Override
+    public RestoreFileResponse restoreFileResponse(Integer fileId,
+                                                   Integer noteId,
+                                                   Integer userId)
+            throws FileNotFoundException {
+
+
+            FileEntity file = fileRepo.findByFileIdAndNotes_IdAndCreatedByAndIsDeletedTrue(fileId, noteId, userId)
+                    .orElseThrow(() -> new FileNotFoundException(
+                            "No deleted file found for fileId=" + fileId +
+                                    ", noteId=" + noteId +
+                                    ", userId=" + userId
+                    ));
+
+            // Restore file
+            file.setIsDeleted(false);
+            file.setDeletedAt(null);
+
+            try {
+                FileEntity restoredFile = fileRepo.save(file);
+
+                RestoreFileResponse response = new RestoreFileResponse();
+                response.setRestoredFileId(restoredFile.getFileId());
+                response.setAssociatedNoteId(restoredFile.getNotes().getId());
+                response.setMessage("File restored successfully");
+                response.setRestoredAt(LocalDateTime.now());
+
+                return response;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Unexpected error" , e);
+            }
     }
 
     //testing remaining

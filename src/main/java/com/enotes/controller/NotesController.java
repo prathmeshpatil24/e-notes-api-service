@@ -169,7 +169,6 @@ public class NotesController {
 
     }
 
-    // testing remaining
     @GetMapping("/recycle-bin")
     public ResponseEntity<?>getRecycleBin(){
 
@@ -189,53 +188,99 @@ public class NotesController {
                 ));
     }
 
-    @DeleteMapping("/recycle-bin/{notesId}/delete-permanently")
-    public ResponseEntity<?> hardDeleteNotesById(@PathVariable Integer notesId) {
-        try {
-            notesService.hardDeleteNotesById(notesId);
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                    "message", "Notes deleted permanently with ID: " + notesId,
-                    "status", HttpStatus.OK
-            ));
-        } catch (Exception e) {
-            System.out.println("Error hard deleting notes: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Failed to delete notes permanently with ID: " + notesId,
-                    "status", HttpStatus.INTERNAL_SERVER_ERROR
-            ));
-        }
+    @PutMapping("/recycle-bin/restore/{noteId}")
+    public ResponseEntity<?>restoreNoteFromTrash(@PathVariable Integer noteId){
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        RestoreNotesResponse restoreResponse = notesService.restoreNote(noteId, userId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "restoredNoteId", restoreResponse.getRestoredNoteId(),
+                        "message", "RESTORED successfully the data at:-" + restoreResponse.getRestoredAt(),
+                        "status", HttpStatus.OK
+
+                ));
     }
 
-    @DeleteMapping("/recycle-bin/file/{fileId}/delete-permanently")
-    public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer fileId) {
-        try {
-            fileService.hardDeleteFile(fileId);
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                    "message", "File deleted permanently with ID: " + fileId,
-                    "status", HttpStatus.OK
-            ));
-        } catch (Exception e) {
-            System.out.println("Error hard deleting file: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Failed to delete file permanently with ID: " + fileId,
-                    "status", HttpStatus.INTERNAL_SERVER_ERROR
-            ));
-        }
+
+    @PutMapping("/recycle-bin/restore/{noteId}/file/{fileId}")
+    public ResponseEntity<?>restoreFileFromTrash(@PathVariable Integer noteId,
+                                                 @PathVariable Integer fileId) throws FileNotFoundException {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        RestoreFileResponse restoreResponse = fileService.restoreFileResponse(fileId,noteId, userId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "restoredFileId", restoreResponse.getRestoredFileId(),
+                        "message", "RESTORED successfully the file with fileId:- " + restoreResponse.getRestoredFileId() +
+                        " with associated noteId:- " +  restoreResponse.getAssociatedNoteId() + " at " +  restoreResponse.getRestoredAt(),
+                        "status", HttpStatus.OK
+
+                ));
     }
 
-    @DeleteMapping("/recycle-bin/empty")
-    public ResponseEntity<?> emptyRecycleBin() {
-        try {
-            notesService.emptyRecycleBin();
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                    "message", "Recycle bin emptied successfully!",
-                    "status", HttpStatus.OK
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Error while emptying recycle bin",
-                    "status", HttpStatus.INTERNAL_SERVER_ERROR
-            ));
-        }
-    }
+    // testing remaining
+//    @DeleteMapping("/recycle-bin/{notesId}/delete-permanently")
+//    public ResponseEntity<?> hardDeleteNotesById(@PathVariable Integer notesId) {
+//        try {
+//            notesService.hardDeleteNotesById(notesId);
+//            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+//                    "message", "Notes deleted permanently with ID: " + notesId,
+//                    "status", HttpStatus.OK
+//            ));
+//        } catch (Exception e) {
+//            System.out.println("Error hard deleting notes: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+//                    "message", "Failed to delete notes permanently with ID: " + notesId,
+//                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+//            ));
+//        }
+//    }
+//
+//    @DeleteMapping("/recycle-bin/file/{fileId}/delete-permanently")
+//    public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer fileId) {
+//        try {
+//            fileService.hardDeleteFile(fileId);
+//            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+//                    "message", "File deleted permanently with ID: " + fileId,
+//                    "status", HttpStatus.OK
+//            ));
+//        } catch (Exception e) {
+//            System.out.println("Error hard deleting file: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+//                    "message", "Failed to delete file permanently with ID: " + fileId,
+//                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+//            ));
+//        }
+//    }
+//
+//    @DeleteMapping("/recycle-bin/empty")
+//    public ResponseEntity<?> emptyRecycleBin() {
+//        try {
+//            notesService.emptyRecycleBin();
+//            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+//                    "message", "Recycle bin emptied successfully!",
+//                    "status", HttpStatus.OK
+//            ));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+//                    "message", "Error while emptying recycle bin",
+//                    "status", HttpStatus.INTERNAL_SERVER_ERROR
+//            ));
+//        }
+//    }
 }

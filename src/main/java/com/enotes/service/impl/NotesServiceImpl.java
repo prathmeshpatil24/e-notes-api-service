@@ -199,36 +199,39 @@ public class NotesServiceImpl implements NotesService {
            dto.setUpdateAt(existingNotes.getUpdatedAt());
 
            //map file details
+//           if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
+//
+//               List<FileDetailsResponse> fileDetailsResponses = existingNotes.getFileEntity()
+//                       .stream()
+//                       .filter(file -> !file.getIsDeleted()) // Only active files, but if data is large then we need to write here sql query
+//                       .map(
+//                               fileEntity -> {
+//                                   FileDetailsResponse fileDto = new FileDetailsResponse();
+//                                   fileDto.setFileId(fileEntity.getFileId());
+//                                   fileDto.setFileName(fileEntity.getFileName());
+//                                   fileDto.setFileSize(fileEntity.getFileSize());
+//                                   return fileDto;
+//                               }).collect(Collectors.toList());
+//               dto.setFiles(fileDetailsResponses);
+//           }
+           //if data is large then this way is best
+           //FETCH ONLY NON-DELETED FILES FROM DB
            if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
 
-               List<FileDetailsResponse> fileDetailsResponses = existingNotes.getFileEntity()
-                       .stream()
-                       .filter(file -> !file.getIsDeleted()) // Only active files, but if data is large then we need to write here sql query
-                       .map(
-                               fileEntity -> {
-                                   FileDetailsResponse fileDto = new FileDetailsResponse();
-                                   fileDto.setFileId(fileEntity.getFileId());
-                                   fileDto.setFileName(fileEntity.getFileName());
-                                   fileDto.setFileSize(fileEntity.getFileSize());
-                                   return fileDto;
-                               }).collect(Collectors.toList());
-               dto.setFiles(fileDetailsResponses);
+               List<FileEntity> activeFiles = fileRepo.findByNotesIdAndIsDeletedFalse(notesId);
+               List<FileDetailsResponse> fileDtos = activeFiles.stream()
+                       .map(file -> {
+                           FileDetailsResponse dtoFile = new FileDetailsResponse();
+                           dtoFile.setFileId(file.getFileId());
+                           dtoFile.setFileName(file.getFileName());
+                           dtoFile.setFileSize(file.getFileSize());
+                           return dtoFile;
+                       })
+                       .collect(Collectors.toList());
+
+               dto.setFiles(fileDtos);
            }
 
-           /* if data is large then this way is best
-           //FETCH ONLY NON-DELETED FILES FROM DB
-        List<FileEntity> activeFiles = fileRepo.findByNotesIdAndIsDeletedFalse(notesId);
-        List<FileDetailsResponse> fileDtos = activeFiles.stream()
-                .map(file -> {
-                    FileDetailsResponse dtoFile = new FileDetailsResponse();
-                    dtoFile.setFileId(file.getFileId());
-                    dtoFile.setFileName(file.getFileName());
-                    dtoFile.setFileSize(file.getFileSize());
-                    return dtoFile;
-                })
-                .collect(Collectors.toList());
-
-        dto.setFiles(fileDtos);*/
            return dto;
        } catch (Exception e) {
            e.printStackTrace();
@@ -267,64 +270,7 @@ public class NotesServiceImpl implements NotesService {
         }
     }
 
-    //testing remaining
-    @Override
-    public void hardDeleteNotesById(Integer notesId) {
-        Notes existingNotes = notesRepo.findByIdAndIsDeletedTrue(notesId).orElseThrow(
-                () -> new RuntimeException("Notes not found with id:- " + notesId)
-        );
 
-        try{
-            // Delete files from disk and DB
-            existingNotes.getFileEntity().forEach(
-                    file ->{
-                        // delete associated files from db and storage also
-                        // Delete actual file from disk
-                        File f = new File(file.getFilePath());
-                        if (f.exists()) {
-                            f.delete();
-
-                        }
-                        // Delete DB record
-                        fileRepo.delete(file);
-                    }
-            );
-
-            // Delete notes from DB
-            notesRepo.delete(existingNotes);
-
-        } catch (RuntimeException e) {
-            System.out.println("Error:- " + e.getMessage());
-            throw new RuntimeException("Error occurred while deleting notes with id:- " + notesId);
-        }
-    }
-
-    @Override
-    public void emptyRecycleBin() {
-
-        // 1. Delete all soft-deleted FILES (including files from soft-deleted notes)
-        List<FileEntity> deletedFiles = fileRepo.findAllByIsDeletedTrue();
-
-        for (FileEntity file : deletedFiles) {
-            // Delete file from disk
-            File physicalFile = new File(file.getFilePath());
-            if (physicalFile.exists()) physicalFile.delete();
-
-            // Delete DB record
-            fileRepo.delete(file);
-        }
-
-        // 2. Delete all soft-deleted NOTES
-        List<Notes> deletedNotes = notesRepo.findAllByIsDeletedTrue();
-
-        for (Notes note : deletedNotes) {
-            // Optional: clear file list from note before deleting
-            note.getFileEntity().clear();
-            notesRepo.delete(note);
-        }
-    }
-
-    //for single file is remaining
     @Override
     public TrashResponse recycleBin(Integer userId) {
 
@@ -397,4 +343,98 @@ public class NotesServiceImpl implements NotesService {
             return response;
         }
 
+    @Override
+    public RestoreNotesResponse restoreNote(Integer noteId, Integer userId) {
+
+        //first check note id is valid then match with userId
+//        notesRepo.findById(noteId)
+//                .orElseThrow(()-> new NotesNotFoundException(noteId));
+
+        Notes note = notesRepo.findByIdAndCreatedByAndIsDeletedTrue(noteId, userId)
+                .orElseThrow(() -> new UserNotesIdException( "No deleted note found for userId: " + userId + " and noteId: " + noteId));
+
+        try {
+            // restore note
+            note.setIsDeleted(false);
+            note.setDeletedAt(null);
+
+            // Restore files safely (null-safe)
+            if (note.getFileEntity() != null) {
+                note.getFileEntity().forEach(f -> {
+                    f.setIsDeleted(false);
+                    f.setDeletedAt(null);
+                });
+            }
+
+            notesRepo.save(note);
+
+            RestoreNotesResponse response = new RestoreNotesResponse();
+            response.setRestoredNoteId(noteId);
+            response.setMessage("Note restored successfully");
+            response.setRestoredAt(LocalDateTime.now());
+
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error" , e);
+        }
+    }
+
+
+    //testing remaining
+//    @Override
+//    public void hardDeleteNotesById(Integer notesId) {
+//        Notes existingNotes = notesRepo.findByIdAndIsDeletedTrue(notesId).orElseThrow(
+//                () -> new RuntimeException("Notes not found with id:- " + notesId)
+//        );
+//
+//        try{
+//            // Delete files from disk and DB
+//            existingNotes.getFileEntity().forEach(
+//                    file ->{
+//                        // delete associated files from db and storage also
+//                        // Delete actual file from disk
+//                        File f = new File(file.getFilePath());
+//                        if (f.exists()) {
+//                            f.delete();
+//
+//                        }
+//                        // Delete DB record
+//                        fileRepo.delete(file);
+//                    }
+//            );
+//
+//            // Delete notes from DB
+//            notesRepo.delete(existingNotes);
+//
+//        } catch (RuntimeException e) {
+//            System.out.println("Error:- " + e.getMessage());
+//            throw new RuntimeException("Error occurred while deleting notes with id:- " + notesId);
+//        }
+//    }
+//
+//    @Override
+//    public void emptyRecycleBin() {
+//
+//        // 1. Delete all soft-deleted FILES (including files from soft-deleted notes)
+//        List<FileEntity> deletedFiles = fileRepo.findAllByIsDeletedTrue();
+//
+//        for (FileEntity file : deletedFiles) {
+//            // Delete file from disk
+//            File physicalFile = new File(file.getFilePath());
+//            if (physicalFile.exists()) physicalFile.delete();
+//
+//            // Delete DB record
+//            fileRepo.delete(file);
+//        }
+//
+//        // 2. Delete all soft-deleted NOTES
+//        List<Notes> deletedNotes = notesRepo.findAllByIsDeletedTrue();
+//
+//        for (Notes note : deletedNotes) {
+//            // Optional: clear file list from note before deleting
+//            note.getFileEntity().clear();
+//            notesRepo.delete(note);
+//        }
+//    }
 }
