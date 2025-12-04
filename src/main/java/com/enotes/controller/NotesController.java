@@ -124,52 +124,52 @@ public class NotesController {
     public ResponseEntity<?> viewFile(@PathVariable Integer noteId, @PathVariable String fileName) throws IOException {
 
         var resource = fileService.downloadFile(noteId, fileName);
-            String contentType = Files.probeContentType(resource.getFile().toPath());
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
-                    .body(resource);
+        String contentType = Files.probeContentType(resource.getFile().toPath());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                .body(resource);
 
     }
 
     @GetMapping("/getDetails/{noteId}/download-file/{fileName}")
     public ResponseEntity<?> downloadFile(@PathVariable Integer noteId, @PathVariable String fileName) throws IOException {
 
-            var resource = fileService.downloadFile(noteId, fileName);
-            String contentType = Files.probeContentType(resource.getFile().toPath());
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                    .body(resource);
+        var resource = fileService.downloadFile(noteId, fileName);
+        String contentType = Files.probeContentType(resource.getFile().toPath());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .body(resource);
 
     }
 
     @DeleteMapping("{noteId}/move-to-trash")
     public ResponseEntity<?> softDeleteNotesById(@PathVariable Integer noteId) {
 
-            notesService.softDeleteNoteById(noteId);
-            return ResponseEntity.status(HttpStatus.OK).
-                    body(Map.of(
-                    "message", "Notes moved to trash successfully with ID: " + noteId,
-                    "status", HttpStatus.OK
-            ));
+        notesService.softDeleteNoteById(noteId);
+        return ResponseEntity.status(HttpStatus.OK).
+                body(Map.of(
+                        "message", "Notes moved to trash successfully with ID: " + noteId,
+                        "status", HttpStatus.OK
+                ));
     }
 
     @DeleteMapping("/{noteId}/move-to-trash/file/{fileId}")
     public ResponseEntity<?> softDeleteFileByFileIdAndNotesId(@PathVariable Integer noteId,
                                                               @PathVariable Integer fileId)
-            throws FileNotFoundException,FileNotesMismatchException {
+            throws FileNotFoundException, FileNotesMismatchException {
 
-            fileService.softDeleteFile(noteId, fileId);
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                    "message", "File moved to trash successfully with fileId: " + fileId,
-                    "status", HttpStatus.OK
-            ));
+        fileService.softDeleteFile(noteId, fileId);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "File moved to trash successfully with fileId: " + fileId,
+                "status", HttpStatus.OK
+        ));
 
     }
 
     @GetMapping("/recycle-bin")
-    public ResponseEntity<?>getRecycleBin(){
+    public ResponseEntity<?> getRecycleBin() {
 
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -188,7 +188,7 @@ public class NotesController {
     }
 
     @PutMapping("/recycle-bin/restore/{noteId}")
-    public ResponseEntity<?>restoreNoteFromTrash(@PathVariable Integer noteId){
+    public ResponseEntity<?> restoreNoteFromTrash(@PathVariable Integer noteId) {
 
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -209,8 +209,8 @@ public class NotesController {
     }
 
     @PutMapping("/recycle-bin/restore/{noteId}/file/{fileId}")
-    public ResponseEntity<?>restoreFileFromTrash(@PathVariable Integer noteId,
-                                                 @PathVariable Integer fileId) throws FileNotFoundException {
+    public ResponseEntity<?> restoreFileFromTrash(@PathVariable Integer noteId,
+                                                  @PathVariable Integer fileId) throws FileNotFoundException {
 
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -219,13 +219,13 @@ public class NotesController {
                         "User is unauthenticated, please login with proper credentials"
                 ));
 
-        RestoreFileResponse restoreResponse = fileService.restoreFileResponse(fileId,noteId, userId);
+        RestoreFileResponse restoreResponse = fileService.restoreFileResponse(fileId, noteId, userId);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(Map.of(
                         "restoredFileId", restoreResponse.getRestoredFileId(),
                         "message", "RESTORED successfully the file with fileId:- " + restoreResponse.getRestoredFileId() +
-                        " with associated noteId:- " +  restoreResponse.getAssociatedNoteId() + " at " +  restoreResponse.getRestoredAt(),
+                                " with associated noteId:- " + restoreResponse.getAssociatedNoteId() + " at " + restoreResponse.getRestoredAt(),
                         "status", HttpStatus.OK
 
                 ));
@@ -241,16 +241,15 @@ public class NotesController {
                 .orElseThrow(() -> new UserNotFoundException(
                         "User is unauthenticated, please login with proper credentials"
                 ));
-            notesService.hardDeleteNotesById(noteId, userId);
+        notesService.hardDeleteNotesById(noteId, userId);
 
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                    "message", "Notes deleted permanently with ID: " + noteId,
-                    "status", HttpStatus.OK
-            ));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "Notes deleted permanently with ID: " + noteId,
+                "status", HttpStatus.OK
+        ));
     }
 
 
-    // testing remaining
     @DeleteMapping("/recycle-bin/{noteId}/file/{fileId}/delete")
     public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer noteId, @PathVariable Integer fileId) {
 
@@ -261,28 +260,30 @@ public class NotesController {
                         "User is unauthenticated, please login with proper credentials"
                 ));
 
-            fileService.hardDeleteFile(fileId,noteId,userId);
+        fileService.hardDeleteFile(fileId, noteId, userId);
 
-            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                    "message", "File deleted permanently with ID: " + fileId,
-                    "status", HttpStatus.OK
-            ));
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "File deleted permanently with ID: " + fileId,
+                "status", HttpStatus.OK
+        ));
 
     }
-//
-//    @DeleteMapping("/recycle-bin/empty")
-//    public ResponseEntity<?> emptyRecycleBin() {
-//        try {
-//            notesService.emptyRecycleBin();
-//            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-//                    "message", "Recycle bin emptied successfully!",
-//                    "status", HttpStatus.OK
-//            ));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-//                    "message", "Error while emptying recycle bin",
-//                    "status", HttpStatus.INTERNAL_SERVER_ERROR
-//            ));
-//        }
-//    }
+
+    // testing remaining
+    @DeleteMapping("/recycle-bin/empty")
+    public ResponseEntity<?> emptyRecycleBin() {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"));
+
+        notesService.emptyRecycleBin(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "Recycle bin emptied successfully!",
+                "status", HttpStatus.OK
+        ));
+
+    }
 }

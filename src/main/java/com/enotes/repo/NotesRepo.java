@@ -16,18 +16,18 @@ import java.util.Optional;
 @Repository
 public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
-  Optional<Notes>findByTitle(String notesTitle);
+    Optional<Notes> findByTitle(String notesTitle);
 
-  Optional<Notes>findByIdAndIsDeletedFalse(Integer notesId);
+    Optional<Notes> findByIdAndIsDeletedFalse(Integer notesId);
 
-  Page<Notes>findByCreatedByAndIsDeletedFalse(Integer userId ,Pageable pageable);
+    Page<Notes> findByCreatedByAndIsDeletedFalse(Integer userId, Pageable pageable);
 
-  //recycle bin list
-  List<Notes>findByCreatedByAndIsDeletedTrue(Integer userId);
-//  Page<Notes>findByCreatedByAndIsDeletedTrue(Integer userId ,Pageable pageable);
+    //recycle bin list
+    List<Notes> findByCreatedByAndIsDeletedTrue(Integer userId);
+    //Page<Notes>findByCreatedByAndIsDeletedTrue(Integer userId ,Pageable pageable);
 
     // restoring/deleting the deleted notes with file
-    Optional<Notes>findByIdAndCreatedByAndIsDeletedTrue(Integer notesId, Integer userId);
+    Optional<Notes> findByIdAndCreatedByAndIsDeletedTrue(Integer notesId, Integer userId);
 
     @Query("SELECT n FROM Notes n WHERE n.isDeleted = TRUE AND n.deletedAt < :cutoff")
     List<Notes> findExpiredFiles(@Param("cutoff") LocalDateTime cutoff);

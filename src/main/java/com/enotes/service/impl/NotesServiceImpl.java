@@ -415,30 +415,37 @@ public class NotesServiceImpl implements NotesService {
             throw new RuntimeException("Error occurred while deleting notes with id:- " + noteId);
         }
     }
-//
+
+
     //testing remaining
-//    @Override
-//    public void emptyRecycleBin() {
-//
-//        // 1. Delete all soft-deleted FILES (including files from soft-deleted notes)
-//        List<FileEntity> deletedFiles = fileRepo.findAllByIsDeletedTrue();
-//
-//        for (FileEntity file : deletedFiles) {
-//            // Delete file from disk
-//            File physicalFile = new File(file.getFilePath());
-//            if (physicalFile.exists()) physicalFile.delete();
-//
-//            // Delete DB record
-//            fileRepo.delete(file);
-//        }
-//
-//        // 2. Delete all soft-deleted NOTES
-//        List<Notes> deletedNotes = notesRepo.findAllByIsDeletedTrue();
-//
-//        for (Notes note : deletedNotes) {
-//            // Optional: clear file list from note before deleting
-//            note.getFileEntity().clear();
-//            notesRepo.delete(note);
-//        }
-//    }
+    @Override
+    public void emptyRecycleBin(Integer userId) {
+
+        try {
+            // 1. Delete all soft-deleted FILES (including files from soft-deleted notes)
+            List<FileEntity> deletedFiles = fileRepo.findByCreatedByAndIsDeletedTrue(userId);
+
+            for (FileEntity file : deletedFiles) {
+                // Delete file from disk
+                File physicalFile = new File(file.getFilePath());
+                if (physicalFile.exists()) physicalFile.delete();
+
+                // Delete DB record
+                fileRepo.delete(file);
+            }
+
+            // 2. Delete all soft-deleted NOTES
+            List<Notes> deletedNotes = notesRepo.findByCreatedByAndIsDeletedTrue(userId);
+
+            for (Notes note : deletedNotes) {
+                // Optional: clear file list from note before deleting
+                note.getFileEntity().clear();
+                notesRepo.delete(note);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error while clearing bin " , e);
+        }
+
+    }
 }

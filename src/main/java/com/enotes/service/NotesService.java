@@ -30,8 +30,8 @@ public interface NotesService {
     RestoreNotesResponse restoreNote(Integer noteId, Integer userId);
 
     void hardDeleteNotesById(Integer noteId, Integer userId);
-//
-//    void emptyRecycleBin();
+
+    void emptyRecycleBin(Integer userId);
 
 
 }
