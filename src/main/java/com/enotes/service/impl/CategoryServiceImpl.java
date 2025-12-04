@@ -7,15 +7,14 @@ import com.enotes.entity.Category;
 import com.enotes.exceptions.CategoryListException;
 import com.enotes.exceptions.CategoryNotFoundException;
 import com.enotes.exceptions.SaveFailedException;
-import com.enotes.exceptions.ValidationException;
 import com.enotes.repo.CategoryRepo;
 import com.enotes.service.CategoryService;
 import com.enotes.utils.Validation;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.List;
 
 
@@ -29,124 +28,132 @@ public class CategoryServiceImpl implements CategoryService {
     private Validation validation;
 
     @Override
-    public CategoryResponseModel saveCategory(CategoryRequestModel categoryRequestModel) {
+    public CategoryResponseModel saveCategory(CategoryRequestModel request) {
         //validation
-         validation.categoryValidation(categoryRequestModel);
+         validation.categoryValidation(request);
 
          //check duplicate category name
-        categoryRepo.findByName(categoryRequestModel.getName().trim())
+        categoryRepo.findByName(request.getName().trim())
                 .ifPresent(category -> {
-                    throw new DataIntegrityViolationException("Category with name '" + categoryRequestModel.getName() + "' already exists.");
+                    throw new DataIntegrityViolationException("Category with name '" + request.getName() + "' already exists.");
                 });
 
 
         Category category = new Category();
         //setting value from request model to entity
-        category.setName(categoryRequestModel.getName().trim());
-        category.setDescription(categoryRequestModel.getDescription().trim());
+        category.setName(request.getName().trim());
+        category.setDescription(request.getDescription().trim());
         category.setIsActive(true); // new category is active by default
 
-        //setting default value
-//        category.setIsDeleted(false);//not deleted
-//        category.setCreatedBy(2);//Admin
-//        category.setCreatedAt(new Date());
-
-        System.out.println(category.toString());
             try {
                 Category savedCategory = categoryRepo.save(category);
 
                 // Map entity -> response
                 CategoryResponseModel response = new CategoryResponseModel();
-                response.setId(savedCategory.getCategoryId());
+                response.setId(savedCategory.getId());
                 response.setName(savedCategory.getName());
                 response.setDescription(savedCategory.getDescription());
-                response.setActive(savedCategory.getIsActive());
-//                response.setDeleted(savedCategory.getIsDeleted());
-//                response.setCreatedBy(savedCategory.getCreatedBy());
-//                response.setCreatedAt(savedCategory.getCreatedAt());
+                response.setIsActive(savedCategory.getIsActive());
 
                 return response;
 
-            } catch (DataIntegrityViolationException ex) {
-                throw new SaveFailedException("Category save failed: duplicate or invalid data," +  ex);
-            } catch (Exception ex) {
-                throw new SaveFailedException("Unexpected error while saving new Category" + ex);
+            }catch (DataIntegrityViolationException ex) {
+                throw new SaveFailedException("Category save failed: duplicate or invalid data." ,  ex);
             }
     }
 
     @Override
-    //this will give all category including deleted and not deleted (Active and Inactive)
+    //this will give all category including Active and Inactive
     public List<CategoryResponseModel> getAllCategory() {
+
         List<Category> categories = categoryRepo.findAll();
 
         if (categories.isEmpty() ){
             throw new CategoryListException("No Categories found, category list is empty");
-
         }
 
-        List<CategoryResponseModel> categoryResponseModels = categories.stream()
+        return categories.stream()
                 .map(category -> {
             CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
 
-            categoryResponseModel.setId(category.getCategoryId());
+            categoryResponseModel.setId(category.getId());
             categoryResponseModel.setName(category.getName());
             categoryResponseModel.setDescription(category.getDescription());
-            categoryResponseModel.setActive(category.getIsActive());
-//            categoryResponseModel.setDeleted(category.getIsDeleted());
+            categoryResponseModel.setIsActive(category.getIsActive());
             categoryResponseModel.setCreatedBy(category.getCreatedBy());
             categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
-//            categoryResponseModel.setCreatedAt(category.getCreatedAt());
-//            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+            categoryResponseModel.setCreatedAt(category.getCreatedAt());
+            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
 
             return categoryResponseModel;
         }).toList();
-        return categoryResponseModels;
     }
 
     @Override
     public List<ActiveCategoryModel> getOnlyActiveCategory() {
+
         List<Category> categories = categoryRepo.findByIsActiveTrue();
 
         if (categories.isEmpty()){
-            throw new CategoryListException("No Categories found where isActive is True");
-
+            throw new CategoryListException("No Categories found where Active status is True");
         }
 
-        List<ActiveCategoryModel> activeCategoryModelList = categories.stream()
+        return categories.stream()
                 .map(category -> {
                     ActiveCategoryModel activeCategoryModel = new ActiveCategoryModel();
 
-                    activeCategoryModel.setId(category.getCategoryId());
+                    activeCategoryModel.setId(category.getId());
                     activeCategoryModel.setName(category.getName());
                     activeCategoryModel.setDescription(category.getDescription());
-                    activeCategoryModel.setActive(category.getIsActive());
+                    activeCategoryModel.setIsActive(category.getIsActive());
 
                     return activeCategoryModel;
                 }).toList();
-        return activeCategoryModelList;
+    }
+
+    @Override
+    public List<ActiveCategoryModel> getOnlyInActiveCategory() {
+        List<Category> categories = categoryRepo.findByIsActiveFalse();
+
+        if (categories.isEmpty()){
+            throw new CategoryListException("No Categories found where Active status is False");
+        }
+
+        return categories.stream()
+                .map(category -> {
+                    ActiveCategoryModel inActive = new ActiveCategoryModel();
+
+                    inActive.setId(category.getId());
+                    inActive.setName(category.getName());
+                    inActive.setDescription(category.getDescription());
+                    inActive.setIsActive(category.getIsActive());
+
+                    return inActive;
+                }).toList();
     }
 
     @Override
     public CategoryResponseModel getCategoryById(Integer categoryId) {
+
         Category category = categoryRepo.findById(categoryId)
                 .orElseThrow(() ->  new CategoryNotFoundException(categoryId));
 
-        CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
-        categoryResponseModel.setId(category.getCategoryId());
-        categoryResponseModel.setName(category.getName());
-        categoryResponseModel.setDescription(category.getDescription());
-        categoryResponseModel.setActive(category.getIsActive());
-//        categoryResponseModel.setDeleted(category.getIsDeleted());
-        categoryResponseModel.setCreatedBy(category.getCreatedBy());
-        categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
-//        categoryResponseModel.setCreatedAt(category.getCreatedAt());
-//        categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+            CategoryResponseModel categoryResponseModel = new CategoryResponseModel();
 
-        return categoryResponseModel;
-    }
+            categoryResponseModel.setId(category.getId());
+            categoryResponseModel.setName(category.getName());
+            categoryResponseModel.setDescription(category.getDescription());
+            categoryResponseModel.setIsActive(category.getIsActive());
+            categoryResponseModel.setCreatedBy(category.getCreatedBy());
+            categoryResponseModel.setUpdatedBy(category.getUpdatedBy());
+            categoryResponseModel.setUpdatedAt(category.getUpdatedAt());
+            categoryResponseModel.setCreatedAt(category.getCreatedAt());
+
+            return categoryResponseModel;
+        }
 
     @Override
-    public Boolean disableCategoryById(Integer categoryId) {
+    public void disableCategoryById(Integer categoryId) {
 
         // Fetch category by ID (admin can disable any existing category)
         Category category = categoryRepo.findById(categoryId)
@@ -157,39 +164,36 @@ public class CategoryServiceImpl implements CategoryService {
             throw new SaveFailedException("Category with id " + categoryId + " is already inactive.");
         }
 
+        try {
         // Disable category
         category.setIsActive(false);
 
-        try {
-            categoryRepo.save(category);
-            return true;
-
-        } catch (DataIntegrityViolationException ex) {
-            throw new SaveFailedException("Failed to update category due to invalid data.", ex);
+        categoryRepo.save(category);
 
         } catch (Exception ex) {
-            throw new SaveFailedException("Unexpected error while disabling category.", ex);
+            throw new SaveFailedException("error while disabling category.", ex);
         }
     }
 
-
     @Override
-    public Boolean updateCategoryById(Integer categoryId, CategoryRequestModel categoryRequestModel) {
+    public CategoryResponseModel updateCategoryById(Integer categoryId, CategoryRequestModel request) {
 
         //check validation and fetch existing category
         Category existingCategory = categoryRepo.findById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException(categoryId));
 
 
-        //update name
-        if (categoryRequestModel.getName() != null) {
+        validation.categoryValidation(request);
 
-            String newCategoryName = categoryRequestModel.getName().trim();
+        //update name
+        if (request.getName() != null) {
+
+            String newCategoryName = request.getName().trim();
 
             //check duplicate category name
             categoryRepo.findByName(newCategoryName)
                     .ifPresent(existing -> {
-                        if (!existing.getCategoryId().equals(categoryId)) {
+                        if (!existing.getId().equals(categoryId)) {
                             throw new DataIntegrityViolationException(
                                     "Category with name '" + newCategoryName + "' already exists."
                             );
@@ -199,32 +203,28 @@ public class CategoryServiceImpl implements CategoryService {
             existingCategory.setName(newCategoryName);
         }
 
-        // ----- Update Description -----
-        if (categoryRequestModel.getDescription() != null) {
-            existingCategory.setDescription(categoryRequestModel.getDescription().trim());
-        }
+        existingCategory.setDescription(request.getDescription().trim());
 
         // ----- Update Active Status -----
-        Boolean active = categoryRequestModel.getIsActive();
+        Boolean active = request.getIsActive();
         if (active != null) {
             existingCategory.setIsActive(active);
-        }else {
-                throw new RuntimeException("isActive field is required and should be true or false");
         }
-
-//        //setting default value
-//        existingCategory.setUpdatedBy(2);//admin
-//        existingCategory.setUpdatedAt(new Date());
 
         //save updated category
         try {
-            Category updateCategory = categoryRepo.save(existingCategory);
-            return true;
-        }catch (DataIntegrityViolationException ex) {
-            throw new SaveFailedException("Category save failed: duplicate or invalid data" + ex);
+            Category savedCategory = categoryRepo.save(existingCategory);
+
+            CategoryResponseModel response = new CategoryResponseModel();
+            response.setId(savedCategory.getId());
+            response.setName(savedCategory.getName());
+            response.setDescription(savedCategory.getDescription());
+            response.setIsActive(savedCategory.getIsActive());
+
+            return response;
         }
         catch (Exception ex){
-            throw new SaveFailedException("Unexpected error while updating category" + ex);
+            throw new SaveFailedException("error while updating category", ex);
         }
     }
 }

@@ -2,7 +2,15 @@ package com.enotes.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "file_details")
 public class FileEntity extends BaseModel {
@@ -15,13 +23,16 @@ public class FileEntity extends BaseModel {
     @Column(name = "file_name")
     private String fileName;
 
+//    @Column(name = "display_file_name")
+//    private String displayFileName;
+
     @Column(name = "file_path")
     private String filePath;
 
     @Column(name = "file_size")
     private Double fileSize;
 
-    @Column(name = "isDeleted", nullable = false)
+    @Column(name = "isDeleted", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean isDeleted = false;
 
     @ManyToOne
@@ -29,64 +40,9 @@ public class FileEntity extends BaseModel {
     @JsonBackReference
     private Notes notes;
 
-    public FileEntity(Integer fileId,
-                      String fileName,
-                      String filePath,
-                      Double fileSize,
-                      Boolean isDeleted,
-                      Notes notes) {
-        this.fileId = fileId;
-        this.fileName = fileName;
-        this.filePath = filePath;
-        this.fileSize = fileSize;
-        this.isDeleted = isDeleted;
-        this.notes = notes;
-    }
+    @Column(name = "deletedAt")
+    private LocalDateTime deletedAt;
 
-    public FileEntity() {
-    }
+    public FileEntity() {}
 
-    public Integer getFileId() {
-        return fileId;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public Double getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(Double fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
-    }
-
-    public Notes getNotes() {
-        return notes;
-    }
-
-    public void setNotes(Notes notes) {
-        this.notes = notes;
-    }
 }

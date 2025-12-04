@@ -3,12 +3,15 @@ package com.enotes.service.impl;
 import com.enotes.cofig.AuditAwareConfig;
 import com.enotes.dto.FileDetailsResponse;
 
+import com.enotes.dto.RestoreFileResponse;
 import com.enotes.entity.FileEntity;
 import com.enotes.entity.Notes;
+import com.enotes.exceptions.*;
 import com.enotes.repo.FileRepo;
 import com.enotes.repo.NotesRepo;
 import com.enotes.service.FileService;
 import com.enotes.utils.FileIdGenerator;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -16,12 +19,14 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,75 +50,83 @@ public class FileServiceImpl implements FileService {
     private String fileUploadDir;
 
     @Override
-    public List<FileDetailsResponse> uploadFiles(Integer notesId, List<MultipartFile> files) throws IOException {
+    public List<FileDetailsResponse> uploadFilesByNotesId(Integer notesId, List<MultipartFile> files) throws FileHandlingException {
+
         //get notes by id
-        Notes notes = notesRepo.findById(notesId).orElseThrow(() ->
-                new RuntimeException("Notes not found with id: " + notesId)
-        );
+        Notes notes = notesRepo.findById(notesId).
+                orElseThrow(() -> new NotesNotFoundException(notesId));
 
-        //list to hold file details response
-        List<FileDetailsResponse> fileDetailsResponselist = new ArrayList<>();
+      try {
+          //list to hold file details response
+          List<FileDetailsResponse> fileDetailsResponselist = new ArrayList<>();
 
-        for (MultipartFile file : files) {
+          for (MultipartFile file : files) {
 
-            if (file.isEmpty()) continue; // skip empty files
+              if (file.isEmpty()){ continue;} // skip empty files
 
-            String filename = file.getOriginalFilename();
-            System.out.println(" Original file name:- " + filename);
+              String originalFilename = file.getOriginalFilename();
+              System.out.println("Original File name:- " + originalFilename);
 
-            //get the file name
-            String username = String.valueOf(notes.getCreatedBy());
+              //generate unique file name
+//              String displayFileName = fileIdGenerator.generateId(originalFilename);
+//              System.out.println("Display File name:- " + displayFileName);
 
-            Path path = Paths.get(fileUploadDir).resolve(username).normalize();
+              //get the file name
+              String username = String.valueOf(notes.getCreatedBy());
 
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
-                System.out.println("Folder created for user: " + username);
-            }
+              Path path = Paths.get(fileUploadDir).resolve(username).normalize();
 
-            //Full path to file = folder + file name
-            assert filename != null;
-            Path fullPath = path.resolve(filename);
+              if (!Files.exists(path)) {
+                  Files.createDirectories(path);
+                  System.out.println("Folder created for user: " + username);
+              }
 
-            //copy file to the target location
-            Files.copy(file.getInputStream(), fullPath, StandardCopyOption.REPLACE_EXISTING);
+              //Full path to file = folder + file name
+              assert originalFilename != null;
+              Path fullPath = path.resolve(originalFilename);// creating file path by display file name
 
-            //set the file name to notes entity
-            FileEntity fileEntity = new FileEntity();
+              //copy file to the target location
+              Files.copy(file.getInputStream(), fullPath, StandardCopyOption.REPLACE_EXISTING);
 
-            //generate unique file name
-            String saveFileName = fileIdGenerator.generateId(filename);
-            fileEntity.setFileName(saveFileName);
+              //set the file name to notes entity
+              FileEntity fileEntity = new FileEntity();
+              fileEntity.setFileName(originalFilename);
+              fileEntity.setFileSize((double) file.getSize());
+              fileEntity.setFilePath(String.valueOf(fullPath));
+              System.out.println("File saved at path: " + fullPath);
+              //link notes with file
+              fileEntity.setNotes(notes);
 
-            fileEntity.setFileSize((double) file.getSize());
-            fileEntity.setFilePath(String.valueOf(fullPath));
-            System.out.println("File saved at path: " + fullPath);
+              //saving all details in db
+              FileEntity savedFile = fileRepo.save(fileEntity);
+              System.out.println("File saved at path: " + savedFile.getFilePath());
 
-            //link notes with file
-            fileEntity.setNotes(notes);
+              // Build response
+              FileDetailsResponse response = new FileDetailsResponse();
+              response.setNotesId(savedFile.getNotes().getId());
+              response.setFileId(savedFile.getFileId());
+              response.setFileName(savedFile.getFileName());
+              response.setFileSize(savedFile.getFileSize());
+              response.setCreatedAt(savedFile.getCreatedAt());
+              response.setCreatedBy(savedFile.getCreatedBy());
 
-            FileEntity savedFile = fileRepo.save(fileEntity);
-            System.out.println("File saved at path: " + savedFile.getFilePath());
+              //adding all notes files for response
+              fileDetailsResponselist.add(response);
+          }
 
-            // Build response
-            FileDetailsResponse fileDetailsResponseModel = new FileDetailsResponse();
-            fileDetailsResponseModel.setNotesId(savedFile.getNotes().getId());
-            fileDetailsResponseModel.setFileId(savedFile.getFileId());
-            fileDetailsResponseModel.setFileName(savedFile.getFileName());
-            fileDetailsResponseModel.setFileSize(savedFile.getFileSize());
+          return fileDetailsResponselist;
 
-
-            fileDetailsResponselist.add(fileDetailsResponseModel);
-        }
-        return fileDetailsResponselist;
+      } catch (IOException ioException){
+         throw new FileHandlingException("Unexpected error while uploading file.", ioException);
+      }
     }
 
     @Override
-    public Resource downloadFile(Integer notesId,String fileName) throws FileNotFoundException, IOException {
+    public Resource downloadFile(Integer notesId,String fileName) throws IOException {
         // Step 1: Find file entry in DB
 
         FileEntity fileEntity = fileRepo.findByNotesIdAndFileNameAndIsDeletedFalse(notesId, fileName)
-                .orElseThrow(() -> new FileNotFoundException("File not found in database or notesId: " + fileName + notesId));
+                .orElseThrow(() -> new FileNotFoundException("File not found in database with notesId: " + notesId + "and file name:- " + fileName));
 
 //        FileEntity fileEntity = fileRepo.findByFileName(fileName)
 //                .orElseThrow(() -> new FileNotFoundException("File not found in database: " + fileName));
@@ -122,7 +135,7 @@ public class FileServiceImpl implements FileService {
         Notes notes = fileEntity.getNotes();
         Optional<Integer> currentAuditor = auditAwareConfig.getCurrentAuditor();
 
-        Integer createdBy = currentAuditor.orElseThrow(() -> new RuntimeException("User not authenticated"));
+        Integer createdBy = currentAuditor.orElseThrow(() -> new UserNotFoundException("User not authenticated"));
 
         // Step 3: Build full file path -> uploadsFiles/{createdBy}/{fileName}
         Path path = Paths.get(fileUploadDir).resolve(String.valueOf(createdBy)).resolve(fileName).normalize();
@@ -138,50 +151,102 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Transactional
     @Override
-    public void softDeleteFile(Integer fileId, Integer notesId) {
-        FileEntity existingFileEntity = fileRepo.findByIdAndNotesIdAndIsDeletedFalse(fileId,notesId).orElseThrow(() ->
-                new RuntimeException("File not found with id:- " + fileId)
-        );
+    public void softDeleteFile(Integer notesId, Integer fileId)
+            throws FileNotFoundException, FileNotesMismatchException {
+        //check fileId is valid or not
+        FileEntity existingFileEntity = fileRepo.findById(fileId)
+                .orElseThrow(() -> new FileNotFoundException("Invalid file ID: " + fileId));
+
+        //match with notesId
+        if (!existingFileEntity.getNotes().getId().equals(notesId)) {
+            System.out.println("fileId and notesId Mismatched");
+            throw new FileNotesMismatchException(
+                    "File with ID " + fileId + " does not belong to notes ID " + notesId
+            );
+        }
+
+//        FileEntity existingFileEntity = fileRepo.findByFileIdAndNotesIdAndIsDeletedFalse(fileId,notesId)
+//                .orElseThrow(() -> new RuntimeException("File not found with id:- " + fileId));
         try {
             // Soft delete file
-            existingFileEntity.setDeleted(true);
+            existingFileEntity.setIsDeleted(true);
+            existingFileEntity.setDeletedAt(LocalDateTime.now());
 
             // Save the changes
             fileRepo.save(existingFileEntity);
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             System.out.println("Error:- " + e.getMessage());
-            throw new RuntimeException("Error occurred while moving to recycle bin file with id:- " + fileId);
+            throw new SoftDeleteFailedException("Error occurred while moving to recycle bin file with id:- " + fileId + " " + e.getMessage());
         }
     }
 
     @Override
-    public void hardDeleteFile(Integer fileId) {
-        FileEntity fileEntity = fileRepo.findById(fileId).orElseThrow(
-                () -> new RuntimeException("File not found with id:- " + fileId)
-        );
+    public RestoreFileResponse restoreFileResponse(Integer fileId,
+                                                   Integer noteId,
+                                                   Integer userId)
+            throws FileNotFoundException {
 
-        Integer notesId = fileEntity.getNotes().getId();
 
-        FileEntity existingFileEntity = fileRepo.findByIdAndNotesIdAndIsDeletedTrue(fileId,notesId)
+            FileEntity file = fileRepo.findByFileIdAndNotes_IdAndCreatedByAndIsDeletedTrue(fileId, noteId, userId)
+                    .orElseThrow(() -> new FileNotFoundException(
+                            "No deleted file found for fileId=" + fileId +
+                                    ", noteId=" + noteId +
+                                    ", userId=" + userId
+                    ));
+
+            // Restore file
+            file.setIsDeleted(false);
+            file.setDeletedAt(null);
+
+            try {
+                FileEntity restoredFile = fileRepo.save(file);
+
+                RestoreFileResponse response = new RestoreFileResponse();
+                response.setRestoredFileId(restoredFile.getFileId());
+                response.setAssociatedNoteId(restoredFile.getNotes().getId());
+                response.setMessage("File restored successfully");
+                response.setRestoredAt(LocalDateTime.now());
+
+                return response;
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException("Unexpected error" , e);
+            }
+    }
+
+    //testing remaining
+    @Transactional
+    @Override
+    public void hardDeleteFile(Integer fileId,
+                               Integer noteId,
+                               Integer createdBy) {
+
+        FileEntity existingFileEntity = fileRepo.findByFileIdAndNotes_IdAndCreatedByAndIsDeletedTrue(fileId,
+                        noteId,
+                        createdBy)
                 .orElseThrow(() ->
-                new RuntimeException("File not found with id:- " + fileId)
-        );
+                        new UserNotesIdException( "No deleted file found for fileId: " + fileId +
+                                ", noteId: " + noteId +
+                                ", userId: " + createdBy));
         try {
             // Delete actual file from disk
-            java.io.File f = new java.io.File(existingFileEntity.getFilePath());
-            if (f.exists()) f.delete();
+            File f = new File(existingFileEntity.getFilePath());
+
+            if (f.exists()){
+                    f.delete();
+            }
 
             // Delete DB record
             fileRepo.delete(existingFileEntity);
 
-        } catch (RuntimeException e) {
-            System.out.println("Error:- " + e.getMessage());
+        } catch (Exception e) {
+           e.printStackTrace();
             throw new RuntimeException("Error occurred while hard deleting file with id:- " + fileId);
         }
 
     }
-
 
 }
