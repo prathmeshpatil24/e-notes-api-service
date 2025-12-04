@@ -16,12 +16,12 @@ public interface NotesService {
                                                                  String sortDir);
 
     //update notes
-     Notes updateNotes(Integer notesId, NotesRequestModel notesRequestModel);
+     Notes updateNotes(Integer noteId, NotesRequestModel notesRequestModel);
 
      //get whole details of notes with notes id
-    NotesFullDetailResponse getNotesFullDetailsByNotesId(Integer notesId);
+    NotesFullDetailResponse getNotesFullDetailsByNoteId(Integer noteId);
 
-    void softDeleteNotesById(Integer notesId);
+    void softDeleteNoteById(Integer noteId);
 
     //get all data which is soft deleted and present under recycle bin
     TrashResponse recycleBin(Integer userId);
@@ -29,7 +29,7 @@ public interface NotesService {
     //restoring the deleted notes with attached files
     RestoreNotesResponse restoreNote(Integer noteId, Integer userId);
 
-//    void hardDeleteNotesById(Integer notesId);
+    void hardDeleteNotesById(Integer noteId, Integer userId);
 //
 //    void emptyRecycleBin();
 

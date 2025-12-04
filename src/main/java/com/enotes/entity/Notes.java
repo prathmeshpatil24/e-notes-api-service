@@ -37,7 +37,7 @@ public class Notes extends BaseModel {
     @Size(min = 10, max = 500, message = "Description must be between 10 and 500 characters")
     private String description;
 
-    @Column(name = "isDeleted", nullable = false)
+    @Column(name = "isDeleted", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean isDeleted = false;
 
     @Column(name = "deletedAt", nullable = true)

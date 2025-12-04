@@ -32,7 +32,7 @@ public class Category extends BaseModel {
     @Size(min = 10, max = 500, message = "Description must be between 10 and 500 characters")
     private String description;
 
-    @Column(name = "is_active")
+    @Column(name = "is_active", columnDefinition = "TINYINT(1)")
     @NotNull(message = "isActive must not be null")
     private Boolean isActive;
 

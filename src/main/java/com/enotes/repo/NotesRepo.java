@@ -22,8 +22,7 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
   List<Notes>findByCreatedByAndIsDeletedTrue(Integer userId);
 //  Page<Notes>findByCreatedByAndIsDeletedTrue(Integer userId ,Pageable pageable);
 
-    //restoring the deleted file
+    // restoring/deleting the deleted notes with file
     Optional<Notes>findByIdAndCreatedByAndIsDeletedTrue(Integer notesId, Integer userId);
 
-    List<Notes>findAllByIsDeletedTrue();
 }

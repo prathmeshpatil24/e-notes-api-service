@@ -8,6 +8,7 @@ import com.enotes.exceptions.FileNotesMismatchException;
 import com.enotes.exceptions.UserNotFoundException;
 import com.enotes.service.impl.FileServiceImpl;
 import com.enotes.service.impl.NotesServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
-
 
 @RestController
 @RequestMapping("/api/notes")
@@ -79,12 +79,12 @@ public class NotesController {
     }
 
 
-    @PutMapping("/update/{notesId}")
+    @PutMapping("/update/{noteId}")
     public ResponseEntity<?> updateNotes(
-            @PathVariable Integer notesId,
+            @PathVariable Integer noteId,
             @RequestBody NotesRequestModel notesRequestModel) {
 
-        Notes updateNotes = notesService.updateNotes(notesId, notesRequestModel);
+        Notes updateNotes = notesService.updateNotes(noteId, notesRequestModel);
         return ResponseEntity.status(HttpStatus.OK).body(
                 Map.of(
                         "message", "Notes updated successfully with ID: " + updateNotes.getId(),
@@ -93,25 +93,25 @@ public class NotesController {
     }
 
 
-    @PostMapping("/{notesId}/upload-files")
+    @PostMapping("/{noteId}/upload-files")
     public ResponseEntity<?> uploadFilesToNotes(
-            @PathVariable Integer notesId,
+            @PathVariable Integer noteId,
             @RequestParam("files") List<MultipartFile> files)
             throws FileHandlingException {
 
-        List<FileDetailsResponse> fileDetailsResponseList = fileService.uploadFilesByNotesId(notesId, files);
+        List<FileDetailsResponse> fileDetailsResponseList = fileService.uploadFilesByNotesId(noteId, files);
         return ResponseEntity.status(HttpStatus.OK).body(
                 Map.of(
-                        "message", "Files uploaded successfully to notes Id:-" + notesId,
+                        "message", "Files uploaded successfully to notes Id:-" + noteId,
                         "status", HttpStatus.OK,
                         "files", fileDetailsResponseList
                 ));
     }
 
-    @GetMapping("/getDetails/{notesId}")
-    public ResponseEntity<?> getFullNotesDetails(@PathVariable Integer notesId) {
+    @GetMapping("/getDetails/{noteId}")
+    public ResponseEntity<?> getFullNotesDetails(@PathVariable Integer noteId) {
 
-        NotesFullDetailResponse fullDetailsByNotesId = notesService.getNotesFullDetailsByNotesId(notesId);
+        NotesFullDetailResponse fullDetailsByNotesId = notesService.getNotesFullDetailsByNoteId(noteId);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(Map.of(
@@ -120,10 +120,10 @@ public class NotesController {
                 ));
     }
 
-    @GetMapping("/getDetails/{notesId}/view-file/{fileName}")
-    public ResponseEntity<?> viewFile(@PathVariable Integer notesId, @PathVariable String fileName) throws IOException {
+    @GetMapping("/getDetails/{noteId}/view-file/{fileName}")
+    public ResponseEntity<?> viewFile(@PathVariable Integer noteId, @PathVariable String fileName) throws IOException {
 
-        var resource = fileService.downloadFile(notesId, fileName);
+        var resource = fileService.downloadFile(noteId, fileName);
             String contentType = Files.probeContentType(resource.getFile().toPath());
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
@@ -132,10 +132,10 @@ public class NotesController {
 
     }
 
-    @GetMapping("/getDetails/{notesId}/download-file/{fileName}")
-    public ResponseEntity<?> downloadFile(@PathVariable Integer notesId, @PathVariable String fileName) throws IOException {
+    @GetMapping("/getDetails/{noteId}/download-file/{fileName}")
+    public ResponseEntity<?> downloadFile(@PathVariable Integer noteId, @PathVariable String fileName) throws IOException {
 
-            var resource = fileService.downloadFile(notesId, fileName);
+            var resource = fileService.downloadFile(noteId, fileName);
             String contentType = Files.probeContentType(resource.getFile().toPath());
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
@@ -144,24 +144,23 @@ public class NotesController {
 
     }
 
-    @DeleteMapping("{notesId}/move-to-trash")
-    public ResponseEntity<?> softDeleteNotesById(@PathVariable Integer notesId) {
+    @DeleteMapping("{noteId}/move-to-trash")
+    public ResponseEntity<?> softDeleteNotesById(@PathVariable Integer noteId) {
 
-            notesService.softDeleteNotesById(notesId);
+            notesService.softDeleteNoteById(noteId);
             return ResponseEntity.status(HttpStatus.OK).
                     body(Map.of(
-                    "message", "Notes moved to trash successfully with ID: " + notesId,
+                    "message", "Notes moved to trash successfully with ID: " + noteId,
                     "status", HttpStatus.OK
             ));
     }
 
-
-    @DeleteMapping("/{notesId}/move-to-trash/file/{fileId}")
-    public ResponseEntity<?> softDeleteFileByFileIdAndNotesId(@PathVariable Integer notesId,
+    @DeleteMapping("/{noteId}/move-to-trash/file/{fileId}")
+    public ResponseEntity<?> softDeleteFileByFileIdAndNotesId(@PathVariable Integer noteId,
                                                               @PathVariable Integer fileId)
             throws FileNotFoundException,FileNotesMismatchException {
 
-            fileService.softDeleteFile(notesId, fileId);
+            fileService.softDeleteFile(noteId, fileId);
             return ResponseEntity.status(HttpStatus.OK).body(Map.of(
                     "message", "File moved to trash successfully with fileId: " + fileId,
                     "status", HttpStatus.OK
@@ -209,7 +208,6 @@ public class NotesController {
                 ));
     }
 
-
     @PutMapping("/recycle-bin/restore/{noteId}/file/{fileId}")
     public ResponseEntity<?>restoreFileFromTrash(@PathVariable Integer noteId,
                                                  @PathVariable Integer fileId) throws FileNotFoundException {
@@ -233,40 +231,44 @@ public class NotesController {
                 ));
     }
 
+
+    @DeleteMapping("/recycle-bin/{noteId}/delete")
+    public ResponseEntity<?> hardDeleteNotesById(@PathVariable Integer noteId) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+            notesService.hardDeleteNotesById(noteId, userId);
+
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "Notes deleted permanently with ID: " + noteId,
+                    "status", HttpStatus.OK
+            ));
+    }
+
+
     // testing remaining
-//    @DeleteMapping("/recycle-bin/{notesId}/delete-permanently")
-//    public ResponseEntity<?> hardDeleteNotesById(@PathVariable Integer notesId) {
-//        try {
-//            notesService.hardDeleteNotesById(notesId);
-//            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-//                    "message", "Notes deleted permanently with ID: " + notesId,
-//                    "status", HttpStatus.OK
-//            ));
-//        } catch (Exception e) {
-//            System.out.println("Error hard deleting notes: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-//                    "message", "Failed to delete notes permanently with ID: " + notesId,
-//                    "status", HttpStatus.INTERNAL_SERVER_ERROR
-//            ));
-//        }
-//    }
-//
-//    @DeleteMapping("/recycle-bin/file/{fileId}/delete-permanently")
-//    public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer fileId) {
-//        try {
-//            fileService.hardDeleteFile(fileId);
-//            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-//                    "message", "File deleted permanently with ID: " + fileId,
-//                    "status", HttpStatus.OK
-//            ));
-//        } catch (Exception e) {
-//            System.out.println("Error hard deleting file: " + e.getMessage());
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-//                    "message", "Failed to delete file permanently with ID: " + fileId,
-//                    "status", HttpStatus.INTERNAL_SERVER_ERROR
-//            ));
-//        }
-//    }
+    @DeleteMapping("/recycle-bin/{noteId}/file/{fileId}/delete")
+    public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer noteId, @PathVariable Integer fileId) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+            fileService.hardDeleteFile(fileId,noteId,userId);
+
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                    "message", "File deleted permanently with ID: " + fileId,
+                    "status", HttpStatus.OK
+            ));
+
+    }
 //
 //    @DeleteMapping("/recycle-bin/empty")
 //    public ResponseEntity<?> emptyRecycleBin() {

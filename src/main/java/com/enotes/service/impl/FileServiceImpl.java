@@ -11,6 +11,7 @@ import com.enotes.repo.FileRepo;
 import com.enotes.repo.NotesRepo;
 import com.enotes.service.FileService;
 import com.enotes.utils.FileIdGenerator;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -150,6 +151,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    @Transactional
     @Override
     public void softDeleteFile(Integer notesId, Integer fileId)
             throws FileNotFoundException, FileNotesMismatchException {
@@ -216,18 +218,19 @@ public class FileServiceImpl implements FileService {
     }
 
     //testing remaining
+    @Transactional
     @Override
-    public void hardDeleteFile(Integer fileId) {
-        FileEntity fileEntity = fileRepo.findById(fileId).orElseThrow(
-                () -> new RuntimeException("File not found with id:- " + fileId)
-        );
+    public void hardDeleteFile(Integer fileId,
+                               Integer noteId,
+                               Integer createdBy) {
 
-        Integer notesId = fileEntity.getNotes().getId();
-
-        FileEntity existingFileEntity = fileRepo.findByFileIdAndNotesIdAndIsDeletedTrue(fileId,notesId)
+        FileEntity existingFileEntity = fileRepo.findByFileIdAndNotes_IdAndCreatedByAndIsDeletedTrue(fileId,
+                        noteId,
+                        createdBy)
                 .orElseThrow(() ->
-                new RuntimeException("File not found with id:- " + fileId)
-        );
+                        new UserNotesIdException( "No deleted file found for fileId: " + fileId +
+                                ", noteId: " + noteId +
+                                ", userId: " + createdBy));
         try {
             // Delete actual file from disk
             File f = new File(existingFileEntity.getFilePath());
@@ -239,12 +242,11 @@ public class FileServiceImpl implements FileService {
             // Delete DB record
             fileRepo.delete(existingFileEntity);
 
-        } catch (RuntimeException e) {
-            System.out.println("Error:- " + e.getMessage());
+        } catch (Exception e) {
+           e.printStackTrace();
             throw new RuntimeException("Error occurred while hard deleting file with id:- " + fileId);
         }
 
     }
-
 
 }

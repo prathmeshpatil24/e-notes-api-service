@@ -11,6 +11,7 @@ import com.enotes.repo.FileRepo;
 import com.enotes.repo.NotesRepo;
 import com.enotes.service.NotesService;
 import com.enotes.utils.Validation;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -142,11 +143,11 @@ public class NotesServiceImpl implements NotesService {
     }
 
     @Override
-    public Notes updateNotes(Integer notesId, NotesRequestModel request) {
+    public Notes updateNotes(Integer noteId, NotesRequestModel request) {
 
         //fetch existing notes
-        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(notesId)
-                .orElseThrow(() -> new NotesNotFoundException(notesId));
+        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(noteId)
+                .orElseThrow(() -> new NotesNotFoundException(noteId));
 
         try{
             // title
@@ -183,10 +184,10 @@ public class NotesServiceImpl implements NotesService {
     }
 
     @Override
-    public NotesFullDetailResponse getNotesFullDetailsByNotesId(Integer notesId) {
+    public NotesFullDetailResponse getNotesFullDetailsByNoteId(Integer noteId) {
         //fetch existing notes
-        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(notesId)
-                .orElseThrow(() -> new NotesNotFoundException(notesId));
+        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(noteId)
+                .orElseThrow(() -> new NotesNotFoundException(noteId));
 
        try {
            //map entity to dto
@@ -218,7 +219,7 @@ public class NotesServiceImpl implements NotesService {
            //FETCH ONLY NON-DELETED FILES FROM DB
            if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
 
-               List<FileEntity> activeFiles = fileRepo.findByNotesIdAndIsDeletedFalse(notesId);
+               List<FileEntity> activeFiles = fileRepo.findByNotesIdAndIsDeletedFalse(noteId);
                List<FileDetailsResponse> fileDtos = activeFiles.stream()
                        .map(file -> {
                            FileDetailsResponse dtoFile = new FileDetailsResponse();
@@ -239,13 +240,14 @@ public class NotesServiceImpl implements NotesService {
        }
     }
 
+    @Transactional
     @Override
-    public void softDeleteNotesById(Integer notesId) {
+    public void softDeleteNoteById(Integer noteId) {
 
         // is deleted should be false for moving to recycle bean
-        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(notesId)
+        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(noteId)
                 .orElseThrow(() ->
-                    new NotesNotFoundException(notesId));
+                    new NotesNotFoundException(noteId));
 
         try {
 
@@ -265,11 +267,10 @@ public class NotesServiceImpl implements NotesService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Failed to move notes with id " + notesId + " to recycle bin.");
-            throw new SoftDeleteFailedException("Failed to move notes with id " + notesId + " to recycle bin." + " " + e.getMessage());
+            System.out.println("Failed to move notes with id " + noteId + " to recycle bin.");
+            throw new SoftDeleteFailedException("Failed to move notes with id " + noteId + " to recycle bin." + " " + e.getMessage());
         }
     }
-
 
     @Override
     public TrashResponse recycleBin(Integer userId) {
@@ -351,7 +352,8 @@ public class NotesServiceImpl implements NotesService {
 //                .orElseThrow(()-> new NotesNotFoundException(noteId));
 
         Notes note = notesRepo.findByIdAndCreatedByAndIsDeletedTrue(noteId, userId)
-                .orElseThrow(() -> new UserNotesIdException( "No deleted note found for userId: " + userId + " and noteId: " + noteId));
+                .orElseThrow(() -> new UserNotesIdException( "No deleted note found for userId: " + userId + " and noteId: " + noteId)
+                );
 
         try {
             // restore note
@@ -380,39 +382,41 @@ public class NotesServiceImpl implements NotesService {
         }
     }
 
+    @Override
+    @Transactional
+    public void hardDeleteNotesById(Integer noteId, Integer userId) {
 
+        Notes existingNotes = notesRepo.findByIdAndCreatedByAndIsDeletedTrue(noteId, userId)
+                .orElseThrow(() ->
+                        new UserNotesIdException("No deleted note found for userId: " + userId + " and noteId: " + noteId)
+                );
+
+        try {
+            // Delete files from disk and DB
+            existingNotes.getFileEntity().forEach(
+                    file ->{
+                        // delete associated files from db and storage also
+                        // Delete actual file from disk
+                        File f = new File(file.getFilePath());
+                        if (f.exists()) {
+                            f.delete();
+
+                        }
+                        // Delete DB record
+                        fileRepo.delete(file);
+                    }
+            );
+
+            // Delete notes from DB
+            notesRepo.delete(existingNotes);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error occurred while deleting notes with id:- " + noteId);
+        }
+    }
+//
     //testing remaining
-//    @Override
-//    public void hardDeleteNotesById(Integer notesId) {
-//        Notes existingNotes = notesRepo.findByIdAndIsDeletedTrue(notesId).orElseThrow(
-//                () -> new RuntimeException("Notes not found with id:- " + notesId)
-//        );
-//
-//        try{
-//            // Delete files from disk and DB
-//            existingNotes.getFileEntity().forEach(
-//                    file ->{
-//                        // delete associated files from db and storage also
-//                        // Delete actual file from disk
-//                        File f = new File(file.getFilePath());
-//                        if (f.exists()) {
-//                            f.delete();
-//
-//                        }
-//                        // Delete DB record
-//                        fileRepo.delete(file);
-//                    }
-//            );
-//
-//            // Delete notes from DB
-//            notesRepo.delete(existingNotes);
-//
-//        } catch (RuntimeException e) {
-//            System.out.println("Error:- " + e.getMessage());
-//            throw new RuntimeException("Error occurred while deleting notes with id:- " + notesId);
-//        }
-//    }
-//
 //    @Override
 //    public void emptyRecycleBin() {
 //

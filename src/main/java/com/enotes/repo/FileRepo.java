@@ -23,6 +23,8 @@ public interface FileRepo extends JpaRepository<FileEntity, Integer> {
 
     List<FileEntity> findByNotesIdAndIsDeletedFalse(Integer notesId);
 
+
+    //for recycle bin
     //    SELECT f.*
 //    FROM file_entity f
 //    JOIN notes n ON f.notes_id = n.id

@@ -21,5 +21,5 @@ public interface FileService {
 
     RestoreFileResponse restoreFileResponse(Integer fileId, Integer noteId, Integer userId) throws FileNotFoundException;
 
-    void hardDeleteFile(Integer fileId);
+    void hardDeleteFile(Integer fileId, Integer noteId, Integer userId);
 }

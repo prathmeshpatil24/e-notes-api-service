@@ -32,7 +32,7 @@ public class FileEntity extends BaseModel {
     @Column(name = "file_size")
     private Double fileSize;
 
-    @Column(name = "isDeleted", nullable = false)
+    @Column(name = "isDeleted", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean isDeleted = false;
 
     @ManyToOne
