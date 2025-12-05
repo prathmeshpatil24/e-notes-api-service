@@ -1,6 +1,6 @@
 package com.enotes.repo;
 
-import com.enotes.entity.FileEntity;
+
 import com.enotes.entity.Notes;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,0 +1,34 @@
+package com.enotes.entity;
+
+import com.enotes.cofig.TodoStatusConverter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "todo")
+public class ToDo extends BaseModel {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @NotBlank(message = "To-Do title must not be blank")
+    @Size(min = 2, max = 100, message = "Title name must be between 2 and 100 characters")
+    @Column(name = "title", nullable = false)
+    private String title;
+
+    @Enumerated(EnumType.STRING)
+    private Priority priority;  // Stored as VARCHAR
+
+    @Convert(converter = TodoStatusConverter.class)
+    private TodoStatus status;  // Stored as INT
+
+    @Column(name = "deletedAt", nullable = true)
+    private LocalDateTime deletedAt;
+
+    @Column(name = "isDeleted", nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
+}
