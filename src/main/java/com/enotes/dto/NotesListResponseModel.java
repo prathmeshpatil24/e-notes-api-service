@@ -15,5 +15,6 @@ public class NotesListResponseModel {
     private String categoryName;
     private LocalDateTime createdAt;
     private LocalDateTime updateAt;
+    private Boolean isFavorite;
 
 }

@@ -16,6 +16,8 @@ import java.util.Optional;
 @Repository
 public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
+    Optional<Notes>findByIdAndCreatedBy(Integer noteId, Integer userId);
+
     Optional<Notes> findByTitle(String notesTitle);
 
     Optional<Notes> findByIdAndIsDeletedFalse(Integer notesId);
@@ -31,4 +33,8 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
     @Query("SELECT n FROM Notes n WHERE n.isDeleted = TRUE AND n.deletedAt < :cutoff")
     List<Notes> findExpiredFiles(@Param("cutoff") LocalDateTime cutoff);
+
+    //list of all fav notes as per userID
+    @Query("SELECT n FROM Notes n WHERE n.createdBy = :userId AND n.isFavorite = TRUE AND n.isDeleted = FALSE")
+    Page<Notes> findAllFavoriteNotes(@Param("userId") Integer userId, Pageable pageable);
 }

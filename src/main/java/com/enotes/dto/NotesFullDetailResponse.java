@@ -16,6 +16,7 @@ public class NotesFullDetailResponse {
     private String categoryName;
     private LocalDateTime createdAt;
     private LocalDateTime updateAt;
+    private Boolean isFavorite;
     private List<FileDetailsResponse> files;
 
 

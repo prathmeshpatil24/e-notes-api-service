@@ -15,13 +15,17 @@ import java.util.Optional;
 @Repository
 public interface FileRepo extends JpaRepository<FileEntity, Integer> {
 
-//    Optional<FileEntity> findByFileNameAndIsDeletedFalse(String fileName);
+//   Optional<FileEntity> findByFileNameAndIsDeletedFalse(String fileName);
 
     Optional<FileEntity> findByNotesIdAndFileNameAndIsDeletedFalse(Integer notesId, String fileName);
 
     Optional<FileEntity> findByFileIdAndNotesIdAndIsDeletedFalse(Integer fileId, Integer notesId);
 
     Optional<FileEntity> findByFileIdAndNotesIdAndIsDeletedTrue(Integer fileId, Integer notesId);
+
+    //for getting only fav file but if the requirement then use it
+    @Query("SELECT n FROM FileEntity n WHERE n.createdBy = :userId AND n.isFavorite = TRUE AND n.isDeleted = FALSE")
+    List<Notes> findAllFavoriteFiles(@Param("userId") Integer userId);
 
     List<FileEntity>findByCreatedByAndIsDeletedTrue(Integer userId);
 

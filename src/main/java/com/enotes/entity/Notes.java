@@ -40,6 +40,9 @@ public class Notes extends BaseModel {
     @Column(name = "isDeleted", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean isDeleted = false;
 
+    @Column(name = "isFavorite", nullable = false, columnDefinition = "TINYINT(1)")
+    private Boolean isFavorite = false;
+
     @Column(name = "deletedAt", nullable = true)
     private LocalDateTime deletedAt;
 

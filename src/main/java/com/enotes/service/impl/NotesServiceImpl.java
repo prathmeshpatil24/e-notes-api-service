@@ -131,6 +131,7 @@ public class NotesServiceImpl implements NotesService {
                         dto.setCategoryName(note.getCategory().getName());
                         dto.setCreatedAt(note.getCreatedAt());
                         dto.setUpdateAt(note.getUpdatedAt());
+                        dto.setIsFavorite(note.getIsFavorite());
                         return dto;
                     });
             //further add file counts also
@@ -198,6 +199,7 @@ public class NotesServiceImpl implements NotesService {
            dto.setCategoryName(existingNotes.getCategory().getName());
            dto.setCreatedAt(existingNotes.getCreatedAt());
            dto.setUpdateAt(existingNotes.getUpdatedAt());
+           dto.setIsFavorite(existingNotes.getIsFavorite());
 
            //map file details
 //           if (existingNotes.getFileEntity() != null && !existingNotes.getFileEntity().isEmpty()) {
@@ -226,6 +228,7 @@ public class NotesServiceImpl implements NotesService {
                            dtoFile.setFileId(file.getFileId());
                            dtoFile.setFileName(file.getFileName());
                            dtoFile.setFileSize(file.getFileSize());
+                           dtoFile.setIsFavorite(file.getIsFavorite());
                            return dtoFile;
                        })
                        .collect(Collectors.toList());
@@ -238,6 +241,28 @@ public class NotesServiceImpl implements NotesService {
            e.printStackTrace();
            throw new RuntimeException("Unexpected error" , e);
        }
+    }
+
+    //testing
+    @Override
+    public Notes toggleFavorite(Integer userId, Integer noteId){
+
+        Notes existingNote = notesRepo.findByIdAndCreatedBy(noteId, userId)
+                .orElseThrow(() -> new UserNotesIdException("UserId and notes Id mismatched"));
+
+        //here if false -> true, if true-> false
+        boolean newFavStatus = !existingNote.getIsFavorite();
+
+        existingNote.setIsFavorite(newFavStatus);
+
+       if(existingNote.getFileEntity() != null && !existingNote.getFileEntity().isEmpty()){
+            existingNote.getFileEntity()
+                    .forEach(fileEntity -> {
+                        fileEntity.setIsFavorite(newFavStatus);
+                    });
+        }
+
+       return notesRepo.save(existingNote);
     }
 
     @Transactional
@@ -416,7 +441,6 @@ public class NotesServiceImpl implements NotesService {
         }
     }
 
-
     //testing remaining
     @Override
     public void emptyRecycleBin(Integer userId) {
@@ -445,6 +469,67 @@ public class NotesServiceImpl implements NotesService {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Unexpected error while clearing bin " , e);
+        }
+
+    }
+
+    @Override
+    public PaginationResponse<NotesListResponseModel> getFavoriteNotesList(Integer userId,
+                                                                        Integer pageNo,
+                                                                        Integer pageSize,
+                                                                        String sortBy,
+                                                                        String sortDir) {
+        // Validate pagination params
+        if (pageNo < 0) {
+            throw new InvalidPaginationParameterException("Page index must not be negative");
+        }
+        if (pageSize <= 0) {
+            throw new InvalidPaginationParameterException("Page size must be greater than zero");
+        }
+        if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
+            throw new InvalidPaginationParameterException("Sort direction must be 'asc' or 'desc'");
+        }
+
+        try {
+            //created sorting object
+            Sort sort = sortDir.equalsIgnoreCase("asc")?
+                    Sort.by(sortBy).ascending():
+                    Sort.by(sortBy).descending();
+
+            //created pageable object
+            Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+            //notes page details
+            Page<Notes> notePages = notesRepo.findAllFavoriteNotes(userId, pageable);
+
+            //validate page number does not exceed total pages
+            int totalPages = notePages.getTotalPages();
+            if (totalPages > 0 && pageNo >= totalPages) {
+                throw new InvalidPaginationParameterException(
+                        "Page number " + pageNo + " exceeds the maximum available pages: " + (totalPages - 1)
+                );
+            }
+
+            //convert entity page to dto page
+            Page<NotesListResponseModel> notesListResponseModelPage = notePages
+                    .map(
+                            note ->
+                            {
+                                NotesListResponseModel dto = new NotesListResponseModel();
+                                dto.setId(note.getId());
+                                dto.setTitle(note.getTitle());
+                                dto.setDescription(note.getDescription());
+                                dto.setCategoryName(note.getCategory().getName());
+                                dto.setCreatedAt(note.getCreatedAt());
+                                dto.setUpdateAt(note.getUpdatedAt());
+                                dto.setIsFavorite(note.getIsFavorite());
+                                return dto;
+                            });
+            //further add file counts also
+
+            return new PaginationResponse<>(notesListResponseModelPage);
+        } catch (Exception ex) {
+            throw new NotesListFetchException("Failed to fetch Favorite notes list. Reason: " + ex.getMessage());
         }
 
     }

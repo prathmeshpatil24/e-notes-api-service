@@ -144,6 +144,7 @@ public class NotesController {
 
     }
 
+
     @DeleteMapping("{noteId}/move-to-trash")
     public ResponseEntity<?> softDeleteNotesById(@PathVariable Integer noteId) {
 
@@ -231,7 +232,6 @@ public class NotesController {
                 ));
     }
 
-
     @DeleteMapping("/recycle-bin/{noteId}/delete")
     public ResponseEntity<?> hardDeleteNotesById(@PathVariable Integer noteId) {
 
@@ -248,7 +248,6 @@ public class NotesController {
                 "status", HttpStatus.OK
         ));
     }
-
 
     @DeleteMapping("/recycle-bin/{noteId}/file/{fileId}/delete")
     public ResponseEntity<?> hardDeleteFileByFileId(@PathVariable Integer noteId, @PathVariable Integer fileId) {
@@ -269,7 +268,7 @@ public class NotesController {
 
     }
 
-    // testing remaining
+    // test remaining
     @DeleteMapping("/recycle-bin/empty")
     public ResponseEntity<?> emptyRecycleBin() {
 
@@ -285,5 +284,50 @@ public class NotesController {
                 "status", HttpStatus.OK
         ));
 
+    }
+
+    //test remaining
+    @PutMapping("/toggleFavorite/{noteId}")
+    public ResponseEntity<?> toggleFavorite(
+            @PathVariable Integer noteId,
+            @RequestParam Integer userId) {
+
+        Notes updatedNote = notesService.toggleFavorite(noteId, userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "message", "toggle is done for noteId:- " + noteId,
+                        "toggle-status", updatedNote.getIsFavorite(),
+                        "status", HttpStatus.OK.value()
+                ));
+    }
+
+
+    @GetMapping("/favorite-notes")
+    public ResponseEntity<?> getFavoriteNotesList(
+            @RequestParam(defaultValue = "0") Integer pageNo,
+            @RequestParam(defaultValue = "5") Integer pageSize,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+//        System.out.println("SORT DIR = '" + sortDir + "'");
+
+        PaginationResponse<NotesListResponseModel> favoriteNotesList = notesService.getFavoriteNotesList(userId,
+                pageNo,
+                pageSize,
+                sortBy,
+                sortDir);
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "Favorite Notes fetched successfully.",
+                "data", favoriteNotesList,
+                "status", HttpStatus.OK
+        ));
     }
 }

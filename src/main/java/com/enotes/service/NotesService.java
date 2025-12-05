@@ -21,6 +21,8 @@ public interface NotesService {
      //get whole details of notes with notes id
     NotesFullDetailResponse getNotesFullDetailsByNoteId(Integer noteId);
 
+    Notes toggleFavorite(Integer userId, Integer noteId);
+
     void softDeleteNoteById(Integer noteId);
 
     //get all data which is soft deleted and present under recycle bin
@@ -34,4 +36,10 @@ public interface NotesService {
     void emptyRecycleBin(Integer userId);
 
 
+    //short data of notes with title and description
+    PaginationResponse<NotesListResponseModel> getFavoriteNotesList(Integer userId,
+                                                                 Integer pageNo,
+                                                                 Integer pageSize,
+                                                                 String sortBy,
+                                                                 String sortDir);
 }

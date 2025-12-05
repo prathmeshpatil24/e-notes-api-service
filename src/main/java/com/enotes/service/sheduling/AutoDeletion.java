@@ -30,11 +30,13 @@ public class AutoDeletion {
 
     // testing remaining
     /*
-      Minute: 0
-      Hour: 3 AM
-      Every day
-      Every month
-      Every year
+ ┌────────-------------- second  = 0
+ │  ┌──────-------------- minute = 0
+ │  │   ┌────-------------- hour = 3
+ │  │   │   ┌──---- day of month = *
+ │  │   │   │   ┌--------- month = *
+ │  │   │   │   │   ┌day of week = *
+ 0  0   3   *   *   *
       */
     @Scheduled(cron = "0 0 3 * * *")
     public void autoHardDelete(){

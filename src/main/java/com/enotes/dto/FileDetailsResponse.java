@@ -16,6 +16,7 @@ public class FileDetailsResponse {
     private Double fileSize;
     private Integer createdBy;
     private Integer updatedBy;
+    private Boolean isFavorite;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
