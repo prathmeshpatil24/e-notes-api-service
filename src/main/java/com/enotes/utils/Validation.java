@@ -1,6 +1,7 @@
 package com.enotes.utils;
 
 import com.enotes.dto.CategoryRequestModel;
+import com.enotes.dto.NotesRequestModel;
 import com.enotes.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -24,11 +25,12 @@ public class Validation {
             if (ObjectUtils.isEmpty(categoryRequestModel.getName())) {
                 error.put("name", "name field is empty or null");
             } else {
-                if (categoryRequestModel.getName().length() < 5) {
-                    error.put("name", "name length min 10");
-                }
-                if (categoryRequestModel.getName().length() > 100) {
-                    error.put("name", "name length max 100");
+                String name = categoryRequestModel.getName();
+
+                if (name.length() < 2) {
+                    error.put("name", "name length must be at least 2 characters");
+                } else if (name.length() > 100) {
+                    error.put("name", "name length must not exceed 100 characters");
                 }
             }
 
@@ -39,20 +41,16 @@ public class Validation {
                 if (categoryRequestModel.getDescription().length() < 10) {
                     error.put("description", "description length min 10");
                 }
-                if (categoryRequestModel.getName().length() > 100) {
-                    error.put("description", "description length max 100");
+                if (categoryRequestModel.getDescription().length() > 500) {
+                    error.put("description", "description length max 500");
                 }
             }
 
             // validation isActive
-            if (ObjectUtils.isEmpty(categoryRequestModel.getIsActive())) {
-                error.put("isActive", "isActive field is empty or null, it should be true or false");
-            } else {
-                if (categoryRequestModel.getIsActive() != Boolean.TRUE.booleanValue()
-                        && categoryRequestModel.getIsActive() != Boolean.FALSE.booleanValue()) {
+                Boolean isActive = categoryRequestModel.getIsActive();
+                if (isActive == null) {
                     error.put("isActive", "invalid value isActive field, it should be true or false");
                 }
-            }
         }
 
         if (!error.isEmpty()) {
@@ -71,45 +69,36 @@ public class Validation {
         }
 
         // Validate title
-        if (ObjectUtils.isEmpty(notesRequestModel.getTitle())) {
+        if (ObjectUtils.isEmpty(notesRequestModel.getNoteTitle())) {
             error.put("title", "Title is required");
         } else {
-            if (notesRequestModel.getTitle().length() < 5) {
-                error.put("title", "Title length min 5 characters");
+            if (notesRequestModel.getNoteTitle().length() < 2) {
+                error.put("title", "Title length min 2 characters");
             }
-            if (notesRequestModel.getTitle().length() > 100) {
-                error.put("title", "Title length max 100 characters");
+            if (notesRequestModel.getNoteTitle().length() > 500) {
+                error.put("title", "Title length max 500 characters");
             }
         }
 
         // Validate description
-        if (ObjectUtils.isEmpty(notesRequestModel.getDescription())) {
+        if (ObjectUtils.isEmpty(notesRequestModel.getNoteDescription())) {
             error.put("description", "Description is required");
         } else {
-            if (notesRequestModel.getDescription().length() < 10) {
+            if (notesRequestModel.getNoteDescription().length() < 10) {
                 error.put("description", "Description length min 10 characters");
             }
-            if (notesRequestModel.getDescription().length() > 2000) {
+            if (notesRequestModel.getNoteDescription().length() > 500) {
                 error.put("description", "Description length max 500 characters");
             }
         }
 
         // Validate category object
-        if (ObjectUtils.isEmpty(notesRequestModel.getCategory())) {
-            error.put("category", "Category object is required");
-        } else {
-            if (ObjectUtils.isEmpty(notesRequestModel.getCategory().getId())) {
-                error.put("categoryId", "Category ID is required");
-            }
-            if (ObjectUtils.isEmpty(notesRequestModel.getCategory().getName())) {
-                error.put("categoryName", "Category name is required");
-            }
+        if (ObjectUtils.isEmpty(notesRequestModel.getCategoryId())) {
+            error.put("category", "Category Id is required");
         }
 
         if (!error.isEmpty()) {
             throw new ValidationException(error);
         }
     }
-
-
 }

@@ -9,6 +9,6 @@ import java.util.Optional;
 public class AuditAwareConfig implements AuditorAware<Integer> {
     @Override
     public Optional<Integer> getCurrentAuditor() {
-        return Optional.of(2); // hardcode admin user id  as 2  for dev
+        return Optional.of(2); // hardcode admin/user id  as 2  for dev
     }
 }

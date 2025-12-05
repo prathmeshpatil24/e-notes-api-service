@@ -5,19 +5,16 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-
 @Getter
 @Setter
-public class CategoryResponseModel {
+public class NotesListResponseModel {
 
     private Integer id;
-    private String name;
+    private String title;
     private String description;
-    private Boolean isActive;
-    private Integer createdBy;
-    private Integer updatedBy;
+    private String categoryName;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
+    private LocalDateTime updateAt;
+    private Boolean isFavorite;
 
 }
