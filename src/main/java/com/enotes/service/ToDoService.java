@@ -30,14 +30,16 @@ public interface ToDoService {
     void softDeleteTodo(Integer id, Integer userId);
 
     PaginationResponse<ToDoResponse> getDeletedTodos(Integer userId,
-                                                     Integer page,
-                                                     Integer size);
+                                                     Integer pageNo,
+                                                     Integer pageSize,
+                                                     String SortBy,
+                                                     String SortDir);
 
     void restoreTodo(Integer id, Integer userId);
 
     void hardDeleteTodo(Integer id, Integer userId);
 
-    void clearBin(Integer userId);
+    void emptyRecycleBin(Integer userId);
 
     ToDoSummaryResponse getSummary(Integer userId);
 

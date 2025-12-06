@@ -16,11 +16,25 @@ public class PaginationResponse<T> {
     private long totalElements;
     private int totalPages;
 
+
+    //for empty bin custom message
+    private List<T> items;
+    private int totalItems;
+    private String message;
+
     public PaginationResponse(Page<T> pageData) {
         this.content = pageData.getContent();
         this.page = pageData.getNumber();
         this.size = pageData.getSize();
         this.totalElements = pageData.getTotalElements();
         this.totalPages = pageData.getTotalPages();
+    }
+
+    // NEW constructor for custom empty response
+    public PaginationResponse(List<T> items, int totalItems, int totalPages, String message) {
+        this.items = items;
+        this.totalItems = totalItems;
+        this.totalPages = totalPages;
+        this.message = message;
     }
 }

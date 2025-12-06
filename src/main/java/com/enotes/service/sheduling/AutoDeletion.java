@@ -2,10 +2,13 @@ package com.enotes.service.sheduling;
 
 import com.enotes.entity.FileEntity;
 import com.enotes.entity.Notes;
+import com.enotes.entity.ToDo;
 import com.enotes.repo.FileRepo;
 import com.enotes.repo.NotesRepo;
+import com.enotes.repo.ToDoRepo;
 import com.enotes.service.impl.FileServiceImpl;
 import com.enotes.service.impl.NotesServiceImpl;
+import com.enotes.service.impl.ToDoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,10 +26,16 @@ public class AutoDeletion {
     private FileRepo fileRepo;
 
     @Autowired
+    private ToDoRepo toDoRepo;
+
+    @Autowired
     private NotesServiceImpl notesService;
 
     @Autowired
     private FileServiceImpl fileService;
+
+    @Autowired
+    private ToDoServiceImpl toDoService;
 
     // testing remaining
     /*
@@ -54,12 +63,20 @@ public class AutoDeletion {
 
 
         //2 expired Files
-
         List<FileEntity> expiredFiles = fileRepo.findExpiredFiles(cutoff);
 
         expiredFiles.forEach(
                 f->{
                     fileService.hardDeleteFile(f.getFileId(), f.getNotes().getId(), f.getCreatedBy());
+                }
+        );
+
+        //3 expired toDo
+        List<ToDo> expiredToDo = toDoRepo.findExpiredToDo(cutoff);
+
+        expiredToDo.forEach(
+                toDo -> {
+                    toDoService.hardDeleteTodo(toDo.getId(), toDo.getCreatedBy());
                 }
         );
 

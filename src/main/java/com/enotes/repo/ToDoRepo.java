@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -51,4 +53,7 @@ public interface ToDoRepo extends JpaRepository<ToDo, Integer> {
     Long countByCreatedByAndStatus(Integer createdBy, TodoStatus status);
 
     Long countByCreatedByAndPriority(Integer createdBy, Priority priority);
+
+    @Query("SELECT t FROM ToDo t WHERE t.isDeleted = TRUE AND t.deletedAt < :cutoff")
+    List<ToDo> findExpiredToDo(@Param("cutoff") LocalDateTime cutoff);
 }

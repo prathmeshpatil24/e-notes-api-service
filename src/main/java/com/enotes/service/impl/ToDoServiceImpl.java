@@ -11,6 +11,7 @@ import com.enotes.exceptions.ToDoListFetchException;
 import com.enotes.repo.ToDoRepo;
 import com.enotes.service.ToDoService;
 import com.enotes.utils.Validation;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 public class ToDoServiceImpl implements ToDoService {
@@ -195,6 +199,7 @@ public class ToDoServiceImpl implements ToDoService {
         }
     }
 
+    @Transactional
     @Override
     public void softDeleteTodo(Integer id, Integer userId) {
 
@@ -213,37 +218,175 @@ public class ToDoServiceImpl implements ToDoService {
     }
 
     @Override
-    public PaginationResponse<ToDoResponse> getDeletedTodos(Integer userId, Integer page, Integer size) {
-        return null;
+    public PaginationResponse<ToDoResponse> getDeletedTodos(Integer userId,
+                                                            Integer pageNo,
+                                                            Integer pageSize,
+                                                            String sortBy,
+                                                            String sortDir) {
+        // Validate pagination params
+        if (pageNo < 0) {
+            throw new InvalidPaginationParameterException("Page index must not be negative");
+        }
+        if (pageSize <= 0) {
+            throw new InvalidPaginationParameterException("Page size must be greater than zero");
+        }
+        if (!sortDir.equalsIgnoreCase("asc") && !sortDir.equalsIgnoreCase("desc")) {
+            throw new InvalidPaginationParameterException("Sort direction must be 'asc' or 'desc'");
+        }
+
+        try {
+            //created sorting object
+            Sort sort = sortDir.equalsIgnoreCase("asc") ?
+                    Sort.by(sortBy).ascending() :
+                    Sort.by(sortBy).descending();
+
+            //created pageable object
+            Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
+
+
+            Page<ToDo> toDoPage = toDoRepo.findByCreatedByAndIsDeletedTrue(userId, pageable);
+
+            // If bin is empty
+            if (toDoPage.isEmpty()) {
+                return new PaginationResponse<>(
+                            Collections.emptyList(),
+                            0,
+                            0,
+                            "No deleted items found"
+                    );
+                }
+
+            //validate page number does not exceed total pages
+            int totalPages = toDoPage.getTotalPages();
+            if (totalPages > 0 && pageNo >= totalPages) {
+                throw new InvalidPaginationParameterException(
+                        "Page number " + pageNo + " exceeds the maximum available pages: " + (totalPages - 1)
+                );
+            }
+
+            //convert entity page to dto page
+            Page<ToDoResponse> toDoResponsePage = toDoPage
+                    .map(
+                            toDo ->
+                            {
+                                ToDoResponse dto = new ToDoResponse();
+                                dto.setId(toDo.getId());
+                                dto.setTitle(toDo.getTitle());
+                                dto.setPriority(toDo.getPriority().name());
+                                dto.setStatusLabel(toDo.getStatus().getLabel());
+                                dto.setStatusCode(toDo.getStatus().getCode());
+                                dto.setCreatedAt(toDo.getCreatedAt());
+                                dto.setUpdatedAt(toDo.getUpdatedAt());
+
+                                return dto;
+                            });
+            //further add file counts also
+
+            return new PaginationResponse<>(toDoResponsePage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new ToDoListFetchException("Failed for fetching ToDo list. " + e.getMessage());
+        }
     }
 
+    @Transactional
     @Override
     public void restoreTodo(Integer id, Integer userId) {
 
+        ToDo todo = toDoRepo.findByIdAndCreatedByAndIsDeletedTrue(id, userId)
+                .orElseThrow(() -> new ToDoException("Todo not found with id:- " + id + "in recycle"));
+        try {
+
+            todo.setIsDeleted(false);
+            todo.setDeletedAt(null);
+            toDoRepo.save(todo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Unexpected error:- ",  e);
+        }
     }
 
+    @Transactional
     @Override
     public void hardDeleteTodo(Integer id, Integer userId) {
 
+        ToDo todo = toDoRepo.findByIdAndCreatedByAndIsDeletedTrue(id, userId)
+                .orElseThrow(() -> new ToDoException("Todo not found in bin with toDoId:- " + id));
+
+        try {
+
+            toDoRepo.delete(todo);
+
+        }catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error occurred while deleting toDo with id:- " + id);
+        }
+
+
     }
 
+    @Transactional
     @Override
-    public void clearBin(Integer userId) {
-
+    public void emptyRecycleBin(Integer userId) {
+       try {
+           toDoRepo.deleteAllDeletedByUser(userId);
+       } catch (Exception e) {
+           e.printStackTrace();
+           throw new RuntimeException("Error occurred while clearing toDo bin. " , e);
+       }
     }
 
     @Override
     public ToDoSummaryResponse getSummary(Integer userId) {
-        return null;
+
+        try {
+
+            ToDoSummaryResponse res = new ToDoSummaryResponse();
+
+            res.setTotal(toDoRepo.countByCreatedBy(userId));
+            res.setCompleted(toDoRepo.countByCreatedByAndStatus(userId, TodoStatus.COMPLETE));
+            res.setInProcess(toDoRepo.countByCreatedByAndStatus(userId, TodoStatus.IN_PROCESS));
+            res.setNotStarted(toDoRepo.countByCreatedByAndStatus(userId, TodoStatus.NOT_STARTED));
+            res.setHighPriority(toDoRepo.countByCreatedByAndPriority(userId, Priority.HIGH));
+
+            return res;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected error:- ",  e);
+        }
     }
 
     @Override
     public void updateStatus(Integer id, TodoStatus status, Integer userId) {
 
+        ToDo todo = toDoRepo.findByIdAndCreatedByAndIsDeletedFalse(id, userId)
+                .orElseThrow(() -> new ToDoException("Todo not found with id:- " + id));
+
+       try{
+
+           todo.setStatus(status);
+           toDoRepo.save(todo);
+
+       } catch (Exception e) {
+           e.printStackTrace();
+           throw new RuntimeException("Unexpected error:- ",  e);
+       }
     }
 
     @Override
     public void updatePriority(Integer id, Priority priority, Integer userId) {
 
+        ToDo todo = toDoRepo.findByIdAndCreatedByAndIsDeletedFalse(id, userId)
+                .orElseThrow(() -> new RuntimeException("Todo not found"));
+
+        try {
+
+            todo.setPriority(priority);
+            toDoRepo.save(todo);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Unexpected error:- ",  e);
+        }
     }
 }

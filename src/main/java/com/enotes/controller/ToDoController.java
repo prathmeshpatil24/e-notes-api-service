@@ -1,10 +1,9 @@
 package com.enotes.controller;
 
 import com.enotes.cofig.AuditAwareConfig;
-import com.enotes.dto.NotesListResponseModel;
-import com.enotes.dto.PaginationResponse;
-import com.enotes.dto.ToDoResponse;
-import com.enotes.dto.TodoRequest;
+import com.enotes.dto.*;
+import com.enotes.enums.Priority;
+import com.enotes.enums.TodoStatus;
 import com.enotes.exceptions.UserNotFoundException;
 import com.enotes.service.impl.ToDoServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ public class ToDoController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<?> createToDo(@RequestBody TodoRequest request){
+    public ResponseEntity<?> createToDo(@RequestBody TodoRequest request) {
 
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -52,7 +51,7 @@ public class ToDoController {
 
 
     @PutMapping("/update/{toDoId}")
-    public ResponseEntity<?> updateToDo(Integer toDoId, TodoRequest request){
+    public ResponseEntity<?> updateToDo(Integer toDoId, TodoRequest request) {
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
         Integer userId = auditAwareConfig.getCurrentAuditor()
@@ -60,7 +59,7 @@ public class ToDoController {
                         "User is unauthenticated, please login with proper credentials"
                 ));
 
-        ToDoResponse toDoResponse = toDoService.updateTodo(toDoId ,request, userId);
+        ToDoResponse toDoResponse = toDoService.updateTodo(toDoId, request, userId);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(Map.of(
@@ -82,7 +81,7 @@ public class ToDoController {
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(required = false) String status, // for filtering
             @RequestParam(required = false) String priority // for Filtering
-            ) {
+    ) {
 
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -110,7 +109,7 @@ public class ToDoController {
 
 
     @GetMapping("/getToDoById/{id}")
-    public ResponseEntity<?> getToDoById(@PathVariable Integer id){
+    public ResponseEntity<?> getToDoById(@PathVariable Integer id) {
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
         Integer userId = auditAwareConfig.getCurrentAuditor()
@@ -128,7 +127,7 @@ public class ToDoController {
     }
 
 
-    @DeleteMapping("{id}/move-to-trash")
+    @DeleteMapping("/{id}/move-to-trash")
     public ResponseEntity<?> softDeleteToDoById(@PathVariable Integer id) {
 
         // Fetch logged-in user ID
@@ -143,6 +142,167 @@ public class ToDoController {
                 body(Map.of(
                         "message", "To-DO moved to trash successfully with ID: " + id,
                         "status", HttpStatus.OK
+                ));
+    }
+
+
+    //in further create one bin for notes and to-do module
+    @GetMapping("/recycle-bin")
+    public ResponseEntity<?> getToDoRecycleBin(
+            @RequestParam(defaultValue = "0") Integer pageNo,
+            @RequestParam(defaultValue = "5") Integer pageSize,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        PaginationResponse<ToDoResponse> recycleBin = toDoService.getDeletedTodos(userId,
+                pageNo,
+                pageSize,
+                sortDir,
+                sortBy);
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "ToDo title list fetched successfully.",
+                "data", recycleBin,
+                "status", HttpStatus.OK
+        ));
+    }
+
+    @PutMapping("/recycle-bin/restore/{id}")
+    public ResponseEntity<?> restoreToDoById(@PathVariable Integer id) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        toDoService.restoreTodo(id, userId);
+        return ResponseEntity.status(HttpStatus.OK).
+                body(Map.of(
+                        "message", "To-DO restored from trash successfully with ID: " + id,
+                        "status", HttpStatus.OK
+                ));
+    }
+
+    @DeleteMapping("recycle-bin/{id}/delete")
+    public ResponseEntity<?> hardDeleteToDoById(Integer id) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        toDoService.hardDeleteTodo(id, userId);
+
+
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "Notes deleted permanently with ID: " + id,
+                "status", HttpStatus.OK.value()
+        ));
+    }
+
+    // test remaining
+    @DeleteMapping("/recycle-bin/empty")
+    public ResponseEntity<?> emptyRecycleBin() {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"));
+
+        toDoService.emptyRecycleBin(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(Map.of(
+                "message", "Recycle bin emptied successfully!",
+                "status", HttpStatus.OK.value()
+
+        ));
+
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<?> getSummary() {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"));
+
+        ToDoSummaryResponse response = toDoService.getSummary(userId);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "message", "Getting Summary",
+                        "data", response,
+                        "status", HttpStatus.OK.value()
+                ));
+    }
+
+
+    //    {
+//        "status": "IN_PROCESS"
+//    }
+    @PatchMapping("/update-status/{id}")
+    public ResponseEntity<?> updateStatus(
+            @PathVariable Integer id,
+            @RequestBody TodoStatus todoStatus
+
+    ) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"));
+
+
+        toDoService.updateStatus(id, todoStatus, userId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "message", "Status updated successfully for id:- " + id,
+                        "data", todoStatus.getCode() + todoStatus.getLabel(),
+                        "status", HttpStatus.OK.value()
+                ));
+
+    }
+
+
+    //    {
+//        "priority": "HIGH"
+//    }
+    @PatchMapping("/update-priority/{id}")
+    public ResponseEntity<?> updatePriority(
+            @PathVariable Integer id,
+            @RequestBody Priority priority
+
+    ) {
+
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"));
+
+
+        toDoService.updatePriority(id, priority, userId);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "message", "Priority updated successfully for id:- " + id,
+                        "data", priority,
+                        "status", HttpStatus.OK.value()
                 ));
     }
 
