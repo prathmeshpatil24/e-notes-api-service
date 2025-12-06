@@ -23,7 +23,7 @@ public interface NotesService {
 
     Notes toggleFavorite(Integer userId, Integer noteId);
 
-    void softDeleteNoteById(Integer noteId);
+    void softDeleteNoteById(Integer noteId, Integer userId);
 
     //get all data which is soft deleted and present under recycle bin
     TrashResponse recycleBin(Integer userId);

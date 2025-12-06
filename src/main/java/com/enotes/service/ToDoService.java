@@ -5,24 +5,33 @@ import com.enotes.dto.PaginationResponse;
 import com.enotes.dto.ToDoSummaryResponse;
 import com.enotes.dto.TodoRequest;
 import com.enotes.dto.ToDoResponse;
-import com.enotes.entity.Priority;
-import com.enotes.entity.TodoStatus;
-import org.springframework.data.domain.Page;
+import com.enotes.enums.Priority;
+import com.enotes.enums.TodoStatus;
 
 
 public interface ToDoService {
 
     ToDoResponse createTodo(TodoRequest request, Integer userId);
 
-    ToDoResponse updateTodo(Integer id, TodoRequest request, Integer userId);
+    ToDoResponse updateTodo(Integer id,
+                            TodoRequest request,
+                            Integer userId);
 
-    PaginationResponse<ToDoResponse> getAllTodos(Integer userId, Integer page, Integer size, String status, String priority);
+    PaginationResponse<ToDoResponse> getAllTodos(Integer userId,
+                                                 Integer pageNo,
+                                                 Integer pageSize,
+                                                 String sortDir,
+                                                 String sortBy,
+                                                 String status,
+                                                 String priority);
 
     ToDoResponse getTodoById(Integer id, Integer userId);
 
     void softDeleteTodo(Integer id, Integer userId);
 
-    PaginationResponse<ToDoResponse> getDeletedTodos(Integer userId, Integer page, Integer size);
+    PaginationResponse<ToDoResponse> getDeletedTodos(Integer userId,
+                                                     Integer page,
+                                                     Integer size);
 
     void restoreTodo(Integer id, Integer userId);
 
@@ -32,7 +41,11 @@ public interface ToDoService {
 
     ToDoSummaryResponse getSummary(Integer userId);
 
-    void updateStatus(Integer id, TodoStatus status, Integer userId);
+    void updateStatus(Integer id,
+                      TodoStatus status,
+                      Integer userId);
 
-    void updatePriority(Integer id, Priority priority, Integer userId);
+    void updatePriority(Integer id,
+                        Priority priority,
+                        Integer userId);
 }

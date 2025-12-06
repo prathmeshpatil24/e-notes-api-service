@@ -2,6 +2,8 @@ package com.enotes.utils;
 
 import com.enotes.dto.CategoryRequestModel;
 import com.enotes.dto.NotesRequestModel;
+import com.enotes.dto.TodoRequest;
+import com.enotes.enums.TodoStatus;
 import com.enotes.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -95,6 +97,55 @@ public class Validation {
         // Validate category object
         if (ObjectUtils.isEmpty(notesRequestModel.getCategoryId())) {
             error.put("category", "Category Id is required");
+        }
+
+        if (!error.isEmpty()) {
+            throw new ValidationException(error);
+        }
+    }
+
+    public void toDoValidation(TodoRequest todoRequest){
+        Map<String, Object> error = new LinkedHashMap<>();
+
+        // Validate request object
+        if (ObjectUtils.isEmpty(todoRequest)) {
+            throw new IllegalArgumentException("ToDo Object/JSON shouldn't be null or empty");
+        }
+
+        // Validate title
+        if (ObjectUtils.isEmpty(todoRequest.getTitle())) {
+            error.put("title", "Title is required");
+        } else {
+            if (todoRequest.getTitle().length() < 2) {
+                error.put("title", "Title length min 2 characters");
+            }
+            if (todoRequest.getTitle().length() > 500) {
+                error.put("title", "Title length max 500 characters");
+            }
+        }
+
+        // Validate Priority
+        if (ObjectUtils.isEmpty(todoRequest.getPriority())) {
+            error.put("Priority", "Priority is required");
+        } else {
+            if (todoRequest.getPriority() == null) {
+                error.put("priority", "Priority code is required");
+            }
+        }
+
+        // Validate category object
+        if (ObjectUtils.isEmpty(todoRequest.getStatus())) {
+            error.put("Status", "Status Id is required");
+        }else {
+                try {
+                    TodoStatus.fromCode(todoRequest.getStatus());
+                } catch (IllegalArgumentException e) {
+                    error.put("status", "Invalid status code. " +
+                            " Allowed: " +
+                            " 1 = NOT_STARTED," +
+                            " 2 = IN_PROCESS," +
+                            " 3 = COMPLETE");
+                }
         }
 
         if (!error.isEmpty()) {

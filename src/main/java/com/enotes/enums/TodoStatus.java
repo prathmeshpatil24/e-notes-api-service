@@ -1,4 +1,4 @@
-package com.enotes.entity;
+package com.enotes.enums;
 
 
 import lombok.Getter;

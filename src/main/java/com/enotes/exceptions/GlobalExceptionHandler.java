@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @ControllerAdvice
@@ -180,6 +181,31 @@ public class GlobalExceptionHandler {
                 ));
 
     }
+
+    @ExceptionHandler(ToDoException.class)
+    public ResponseEntity<?> handleToDoException(ToDoException ex) {
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "ToDo Error",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(ToDoListFetchException.class)
+    public ResponseEntity<?> handleToDoListFetchException(ToDoListFetchException ex) {
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "error", "To-Do List Fetch Error",
+                        "message", ex.getMessage(),
+                        "timestamp", LocalDateTime.now()
+                ));
+    }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobal(Exception ex) {

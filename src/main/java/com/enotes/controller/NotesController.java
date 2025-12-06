@@ -148,7 +148,14 @@ public class NotesController {
     @DeleteMapping("{noteId}/move-to-trash")
     public ResponseEntity<?> softDeleteNotesById(@PathVariable Integer noteId) {
 
-        notesService.softDeleteNoteById(noteId);
+        // Fetch logged-in user ID
+        // Hardcoded user ID for demonstration purposes
+        Integer userId = auditAwareConfig.getCurrentAuditor()
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User is unauthenticated, please login with proper credentials"
+                ));
+
+        notesService.softDeleteNoteById(noteId, userId);
         return ResponseEntity.status(HttpStatus.OK).
                 body(Map.of(
                         "message", "Notes moved to trash successfully with ID: " + noteId,

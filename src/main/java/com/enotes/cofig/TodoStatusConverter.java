@@ -1,11 +1,8 @@
 package com.enotes.cofig;
 
-import com.enotes.entity.TodoStatus;
+import com.enotes.enums.TodoStatus;
 import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Converter;
-
-import javax.print.attribute.Attribute;
 
 @Converter(autoApply = true)
 public class TodoStatusConverter implements AttributeConverter<TodoStatus, Integer> {

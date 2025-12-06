@@ -1,4 +1,4 @@
-package com.enotes.entity;
+package com.enotes.enums;
 
 public enum Priority {
     LOW,

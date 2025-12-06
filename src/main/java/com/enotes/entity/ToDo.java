@@ -1,12 +1,20 @@
 package com.enotes.entity;
 
 import com.enotes.cofig.TodoStatusConverter;
+import com.enotes.enums.Priority;
+import com.enotes.enums.TodoStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
+@AllArgsConstructor
 @Entity
 @Table(name = "todo")
 public class ToDo extends BaseModel {
@@ -31,4 +39,6 @@ public class ToDo extends BaseModel {
 
     @Column(name = "isDeleted", nullable = false, columnDefinition = "TINYINT(1)")
     private Boolean isDeleted = false;
+
+    public ToDo() {}
 }

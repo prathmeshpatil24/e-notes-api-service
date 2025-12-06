@@ -267,10 +267,10 @@ public class NotesServiceImpl implements NotesService {
 
     @Transactional
     @Override
-    public void softDeleteNoteById(Integer noteId) {
+    public void softDeleteNoteById(Integer noteId, Integer userId) {
 
         // is deleted should be false for moving to recycle bean
-        Notes existingNotes = notesRepo.findByIdAndIsDeletedFalse(noteId)
+        Notes existingNotes = notesRepo.findByIdAndCreatedByAndIsDeletedFalse(noteId, userId)
                 .orElseThrow(() ->
                     new NotesNotFoundException(noteId));
 

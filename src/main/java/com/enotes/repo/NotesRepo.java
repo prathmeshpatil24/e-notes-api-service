@@ -22,6 +22,8 @@ public interface NotesRepo extends JpaRepository<Notes, Integer> {
 
     Optional<Notes> findByIdAndIsDeletedFalse(Integer notesId);
 
+    Optional<Notes>findByIdAndCreatedByAndIsDeletedFalse(Integer noteId, Integer userId);
+
     Page<Notes> findByCreatedByAndIsDeletedFalse(Integer userId, Pageable pageable);
 
     //recycle bin list

@@ -19,5 +19,6 @@ public class ToDoResponse {
     private Integer statusCode;  // 1, 2, 3
     private String statusLabel;  // Not Started, In Process, Complete
 
-    private LocalDateTime createdOn; // From auditing
+    private LocalDateTime createdAt; // From auditing
+    private LocalDateTime updatedAt; // From auditing
 }

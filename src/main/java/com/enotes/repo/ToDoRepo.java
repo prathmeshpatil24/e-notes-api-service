@@ -1,8 +1,8 @@
 package com.enotes.repo;
 
-import com.enotes.entity.Priority;
+import com.enotes.enums.Priority;
 import com.enotes.entity.ToDo;
-import com.enotes.entity.TodoStatus;
+import com.enotes.enums.TodoStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,15 +14,15 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ToDoRepo extends JpaRepository<ToDoRepo, Integer> {
+public interface ToDoRepo extends JpaRepository<ToDo, Integer> {
 
     // 1. Get all active todos for user
     Page<ToDo> findByCreatedByAndIsDeletedFalse(Integer createdBy, Pageable pageable);
 
-    // 2. Get all todos by status
+    // 2. Get all todos by status -> filtering
     Page<ToDo> findByCreatedByAndStatusAndIsDeletedFalse(Integer createdBy, TodoStatus status, Pageable pageable);
 
-    // 3. Get all todos by priority
+    // 3. Get all todos by priority -> filtering
     Page<ToDo> findByCreatedByAndPriorityAndIsDeletedFalse(Integer createdBy, Priority priority, Pageable pageable);
 
     // 4. Single todo (active only)
