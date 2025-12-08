@@ -1,6 +1,6 @@
 # **📝 Project Introduction – E-Notes Management System**
 
-_The E-Notes Management System is a full-featured digital notes platform designed to help users create, organize, store, and manage their notes and tasks efficiently. Built using Spring Boot, it provides a secure, scalable, and modular backend for real-world usage.
+The E-Notes Management System is a full-featured digital notes platform designed to help users create, organize, store, and manage their notes and tasks efficiently. Built using Spring Boot, it provides a secure, scalable, and modular backend for real-world usage.
 
 The system allows users to maintain text notes, documents, and categorized content, along with a powerful TODO tracking module that sends daily email reports of a user's progress. It also includes advanced features like pagination, filtering, soft delete, recycle bin, and auto-deletion of expired notes.
 
