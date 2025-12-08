@@ -13,13 +13,13 @@ public class AuditAwareConfig implements AuditorAware<Integer> {
 //        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 //
 //        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
-//            return Optional.empty(); // IMPORTANT for registration
+//            return Optional.of(0); // or Optional.empty();
 //        }
 //
 //        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
 //        return Optional.of(user.getId());
 
 
-        return Optional.of(null); // hardcode admin/user id  as 2  for dev
+        return Optional.of(0); // hardcode admin/user id  as 2/0  for dev
     }
 }
