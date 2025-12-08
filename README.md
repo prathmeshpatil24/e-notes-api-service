@@ -1,6 +1,6 @@
-📝 Project Introduction – E-Notes Management System
+# **📝 Project Introduction – E-Notes Management System**
 
-The E-Notes Management System is a full-featured digital notes platform designed to help users create, organize, store, and manage their notes and tasks efficiently. Built using Spring Boot, it provides a secure, scalable, and modular backend for real-world usage.
+_The E-Notes Management System is a full-featured digital notes platform designed to help users create, organize, store, and manage their notes and tasks efficiently. Built using Spring Boot, it provides a secure, scalable, and modular backend for real-world usage.
 
 The system allows users to maintain text notes, documents, and categorized content, along with a powerful TODO tracking module that sends daily email reports of a user's progress. It also includes advanced features like pagination, filtering, soft delete, recycle bin, and auto-deletion of expired notes.
 
@@ -8,103 +8,104 @@ Security is enforced using Spring Security + JWT with role-based authentication,
 
 A future enhancement includes integrating an AI-powered Chatbot that can analyze notes based on categories and assist the user by answering queries, summarizing content, and providing personalized suggestions—making note management smarter and more interactive.
 
-⭐ Key Features
+## **⭐ Key Features**
 
-🗂️ Notes Management
+### **🗂️ Notes Management**
 
-Create, update, and delete notes.
+* Create, update, and delete notes.
 
-Organize notes by categories.
+* Organize notes by categories.
 
-Attach documents/files to notes.
+* Attach documents/files to notes.
 
-Pagination & filtering for scalable browsing.
+* Pagination & filtering for scalable browsing.
 
-Soft delete & recycle bin with restore support.
+* Soft delete & recycle bin with restore support.
 
-Automatic permanent deletion after expiry time.
+* Automatic permanent deletion after expiry time.
 
-📎 File Management
+### **📎 File Management**
 
-Upload files/documents for each note.
+* Upload files/documents for each note.
 
-Store files locally with filename saved in DB.
+* Store files locally with filename saved in DB.
 
-Secure download & view functionality.
+* Secure download & view functionality.
 
-User-specific file organization.
+* User-specific file organization.
 
-🗂️ Category Management
+### **🗂️ Category Management**
 
-Create and manage categories.
+* Create and manage categories.
 
-Link notes under specific categories.
+* Link notes under specific categories.
 
-Soft delete & restore support.
+* Soft delete & restore support.
 
-✔️ TODO Management
+### **✔️ TODO Management**
 
-Full CRUD operations for tasks.
+* Full CRUD operations for tasks.
 
-Status tracking: CREATED, IN_PROCESS, COMPLETED.
+* Status tracking: CREATED, IN_PROCESS, COMPLETED.
 
-Soft delete & recovery.
+* Soft delete & recovery.
 
-Daily email notifications summarizing user’s tasks for the day.
+* Daily email notifications summarizing user’s tasks for the day.
 
-🔐 User & Security Module
+### **🔐 User & Security Module**
 
-User registration & login.
+* User registration & login.
 
-Spring Security with JWT authentication.
+* Spring Security with JWT authentication.
 
-Role-based access control.
+* Role-based access control.
 
-Secure APIs for every module.
+* Secure APIs for every module.
 
-Fully isolated user data.
+* Fully isolated user data.
 
-🤖 (Upcoming) AI Chatbot Integration
+### **🤖 (Upcoming) AI Chatbot Integration**
 
-Category-wise note understanding.
+* Category-wise note understanding.
 
-Personalized responses and suggestions.
+* Personalized responses and suggestions.
 
-Assist users in searching, summarizing, and managing notes.
+* Assist users in searching, summarizing, and managing notes.
 
-Enhances overall user experience.
+* Enhances overall user experience.
 
-🎯 Project Goal
+## **🎯 Project Goal**
 
 The goal of this project is to create a smart, secure, and user-friendly notes management system that helps individuals and teams organize their information, track tasks, and maintain digital documents effortlessly—powered by modern backend architecture and intelligent automation.
 
-🚀 Tech Stack
-Backend
+## **🚀 Tech Stack**
 
-Java 17
+### **Backend**
 
-Spring Boot
+1. [ ] Java 17
+2. [ ] 
+3. [ ] Spring Boot
+4. [ ] 
+5. [ ] Spring Web
+6. [ ] 
+7. [ ] Spring Data JPA
+8. [ ] 
+9. [ ] Spring Auditing
+10. [ ] 
+11. [ ] Spring Security (JWT Authentication)
+12. [ ] 
+13. [ ] Spring Ai
+14. [ ] 
+15. [ ] Lombok
+16. [ ] 
+17. [ ] Swagger (API Documentation)
+18. [ ] 
+19. [ ] Postman
 
-Spring Web
+### **Database**
 
-Spring Data JPA
+1. [ ] MySQL
 
-Spring Auditing
+### **Build Tool**
 
-Spring Security (JWT Authentication)
-
-Spring Ai
-
-MySQL
-
-Lombok
-
-Swagger (API Documentation)
-
-Postman
-
-
-
-Build Tool
-
-Maven
+1. [ ] Maven
