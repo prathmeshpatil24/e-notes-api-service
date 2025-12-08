@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class ENotesApplication {
 
 	public static void main(String[] args) {
-		ApplicationContext context = SpringApplication.run(ENotesApplication.class, args);
+        SpringApplication.run(ENotesApplication.class, args);
         System.out.println("Server is running on http://localhost:8085");
         System.out.println("Press Ctrl+C to stop the server");
 
