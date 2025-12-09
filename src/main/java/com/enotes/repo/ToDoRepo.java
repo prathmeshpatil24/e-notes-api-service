@@ -43,6 +43,11 @@ public interface ToDoRepo extends JpaRepository<ToDo, Integer> {
     Optional<ToDo> findByIdAndCreatedByAndIsDeletedTrue(Integer id, Integer createdBy);
 
     // 9. Clear bin
+    //count deleted by user
+    @Query("SELECT COUNT(t) FROM ToDo t WHERE t.createdBy = :createdBy AND t.isDeleted = TRUE")
+    long countDeletedByUser(@Param("createdBy") Integer createdBy);
+
+
     @Modifying
     @Query("DELETE FROM ToDo t WHERE t.createdBy = :createdBy AND t.isDeleted = TRUE")
     void deleteAllDeletedByUser(@Param("createdBy") Integer createdBy);
