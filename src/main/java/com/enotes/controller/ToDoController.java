@@ -51,7 +51,7 @@ public class ToDoController {
 
 
     @PutMapping("/update/{toDoId}")
-    public ResponseEntity<?> updateToDo(Integer toDoId, TodoRequest request) {
+    public ResponseEntity<?> updateToDo(@PathVariable Integer toDoId, @RequestBody TodoRequest request) {
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
         Integer userId = auditAwareConfig.getCurrentAuditor()
@@ -73,7 +73,7 @@ public class ToDoController {
                 ));
     }
 
-    @GetMapping("/toDo-list")
+    @GetMapping("/getAll")
     public ResponseEntity<?> getToDoList(
             @RequestParam(defaultValue = "0") Integer pageNo,
             @RequestParam(defaultValue = "5") Integer pageSize,
@@ -108,7 +108,7 @@ public class ToDoController {
     }
 
 
-    @GetMapping("/getToDoById/{id}")
+    @GetMapping("/getById/{id}")
     public ResponseEntity<?> getToDoById(@PathVariable Integer id) {
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -162,11 +162,15 @@ public class ToDoController {
                         "User is unauthenticated, please login with proper credentials"
                 ));
 
-        PaginationResponse<ToDoResponse> recycleBin = toDoService.getDeletedTodos(userId,
+        System.out.println("SORT DIR RECEIVED = " + sortDir);
+
+        PaginationResponse<ToDoResponse> recycleBin = toDoService.getDeletedTodos(
+                userId,
                 pageNo,
                 pageSize,
-                sortDir,
-                sortBy);
+                sortBy,
+                sortDir
+                );
 
         return ResponseEntity.status(HttpStatus.OK).body(Map.of(
                 "message", "ToDo title list fetched successfully.",
@@ -175,7 +179,7 @@ public class ToDoController {
         ));
     }
 
-    @PutMapping("/recycle-bin/restore/{id}")
+    @PatchMapping("/recycle-bin/restore/{id}")
     public ResponseEntity<?> restoreToDoById(@PathVariable Integer id) {
 
         // Fetch logged-in user ID
@@ -194,7 +198,7 @@ public class ToDoController {
     }
 
     @DeleteMapping("recycle-bin/{id}/delete")
-    public ResponseEntity<?> hardDeleteToDoById(Integer id) {
+    public ResponseEntity<?> hardDeleteToDoById(@PathVariable Integer id) {
 
         // Fetch logged-in user ID
         // Hardcoded user ID for demonstration purposes
@@ -222,9 +226,9 @@ public class ToDoController {
                 .orElseThrow(() -> new UserNotFoundException(
                         "User is unauthenticated, please login with proper credentials"));
 
-        toDoService.emptyRecycleBin(userId);
+        String recycleBin = toDoService.emptyRecycleBin(userId);
         return ResponseEntity.status(HttpStatus.OK).body(Map.of(
-                "message", "Recycle bin emptied successfully!",
+                "message", recycleBin,
                 "status", HttpStatus.OK.value()
 
         ));
@@ -251,12 +255,12 @@ public class ToDoController {
 
 
     //    {
-//        "status": "IN_PROCESS"
+//        "status": 3
 //    }
     @PatchMapping("/update-status/{id}")
     public ResponseEntity<?> updateStatus(
             @PathVariable Integer id,
-            @RequestBody TodoStatus todoStatus
+            @RequestBody UpdateStatusRequest req
 
     ) {
 
@@ -266,13 +270,14 @@ public class ToDoController {
                 .orElseThrow(() -> new UserNotFoundException(
                         "User is unauthenticated, please login with proper credentials"));
 
+        TodoStatus todoStatus = TodoStatus.fromCode(req.getStatus());
 
         toDoService.updateStatus(id, todoStatus, userId);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(Map.of(
                         "message", "Status updated successfully for id:- " + id,
-                        "data", todoStatus.getCode() + todoStatus.getLabel(),
+                        "data",  "status:- " + todoStatus.getCode() + " label:- " + todoStatus.getLabel(),
                         "status", HttpStatus.OK.value()
                 ));
 
@@ -285,7 +290,7 @@ public class ToDoController {
     @PatchMapping("/update-priority/{id}")
     public ResponseEntity<?> updatePriority(
             @PathVariable Integer id,
-            @RequestBody Priority priority
+            @RequestBody UpdatePriorityRequest request
 
     ) {
 
@@ -294,6 +299,8 @@ public class ToDoController {
         Integer userId = auditAwareConfig.getCurrentAuditor()
                 .orElseThrow(() -> new UserNotFoundException(
                         "User is unauthenticated, please login with proper credentials"));
+
+        Priority priority = Priority.valueOf(request.getPriority().toUpperCase());
 
 
         toDoService.updatePriority(id, priority, userId);

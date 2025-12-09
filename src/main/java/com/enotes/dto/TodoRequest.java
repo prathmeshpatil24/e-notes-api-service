@@ -22,4 +22,5 @@ public class TodoRequest {
     // Status: 1=NOT_STARTED, 2=INPROCESS, 3=COMPLETE
     @NotNull(message = "Status code is required")
     private Integer status;
+
 }

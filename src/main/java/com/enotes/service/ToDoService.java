@@ -39,7 +39,7 @@ public interface ToDoService {
 
     void hardDeleteTodo(Integer id, Integer userId);
 
-    void emptyRecycleBin(Integer userId);
+    String emptyRecycleBin(Integer userId);
 
     ToDoSummaryResponse getSummary(Integer userId);
 

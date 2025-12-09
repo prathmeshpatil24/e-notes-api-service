@@ -328,9 +328,18 @@ public class ToDoServiceImpl implements ToDoService {
 
     @Transactional
     @Override
-    public void emptyRecycleBin(Integer userId) {
+    public String emptyRecycleBin(Integer userId) {
        try {
+
+           long deletedCount = toDoRepo.countDeletedByUser(userId);
+
+           if (deletedCount == 0) {
+               return "No deleted items to clear";
+           }
+
            toDoRepo.deleteAllDeletedByUser(userId);
+
+           return deletedCount + " deleted item(s) permanently removed";
        } catch (Exception e) {
            e.printStackTrace();
            throw new RuntimeException("Error occurred while clearing toDo bin. " , e);
