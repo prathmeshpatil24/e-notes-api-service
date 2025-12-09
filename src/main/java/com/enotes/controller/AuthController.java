@@ -2,7 +2,6 @@ package com.enotes.controller;
 
 import com.enotes.dto.RegistrationDto;
 import com.enotes.entity.UserEntity;
-import com.enotes.service.UserDetailService;
 import com.enotes.service.impl.UserDetailServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +45,21 @@ public class AuthController {
                 Map.of(
                         "message", response,
                         "email", email
+                )
+        );
+    }
+
+
+    @PostMapping("/register-admin")
+    public ResponseEntity<?>registerAdmin(
+            @Valid @RequestBody RegistrationDto dto){
+
+        Map<String, Object> response = userDetailService.registerAdmin(dto);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", response.get("message"),
+                        "email", ((UserEntity) response.get("user")).getEmail()
                 )
         );
     }

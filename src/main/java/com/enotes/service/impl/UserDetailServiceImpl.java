@@ -10,8 +10,12 @@ import com.enotes.repo.UserDetailRepo;
 import com.enotes.service.UserDetailService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -25,6 +29,9 @@ public class UserDetailServiceImpl implements UserDetailService {
 
     @Autowired
     private EmailServiceImpl emailService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Override
     public UserEntity registerUser(RegistrationDto dto) {
@@ -44,8 +51,8 @@ public class UserDetailServiceImpl implements UserDetailService {
        user.setLastName(dto.getLastName());
        user.setEmail(dto.getEmail());
        user.setMobileNo(dto.getMobileNo());
-       user.setPassword(dto.getPassword());// for testing
-//        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+//       user.setPassword(dto.getPassword());// for testing
+      user.setPassword(passwordEncoder.encode(dto.getPassword()));
         /*
          //for testing purpose
          user.setIsActive(true);
@@ -166,5 +173,63 @@ public class UserDetailServiceImpl implements UserDetailService {
            e.printStackTrace();
            throw new RuntimeException(e);
        }
+    }
+
+    @Override
+    public Map<String, Object> registerAdmin(RegistrationDto dto) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        //check mail is present ot not
+        Optional<UserEntity> existing = userDetailRepo.findByEmail(dto.getEmail());
+
+        if (existing.isPresent()) {
+
+            UserEntity user = existing.get();
+
+            // User already exists → upgrade role
+            RoleEntity adminRole = roleRepo.findById(2)
+                    .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
+
+            user.getRoles().add(adminRole);
+
+            userDetailRepo.save(user);
+            result.put("user", user);
+            result.put("message", "Existing user upgraded to admin successfully.");
+
+            return result;
+        }
+
+        // NEW ADMIN (never registered before)
+        UserEntity admin = new UserEntity();
+
+        admin.setFirstName(dto.getFirstName());
+        admin.setLastName(dto.getLastName());
+        admin.setEmail(dto.getEmail());
+        admin.setMobileNo(dto.getMobileNo());
+//        admin.setPassword(dto.getPassword());
+        admin.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+        // Must verify
+        String token = UUID.randomUUID().toString();
+        admin.setVerificationCode(token);
+        admin.setIsActive(false);
+
+        // Assign admin role
+        RoleEntity adminRole = roleRepo.findById(2)
+                .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
+
+        admin.getRoles().add(adminRole);
+
+        UserEntity savedAdmin = userDetailRepo.save(admin);
+
+        // Send verification email
+        sendVerificationLink(savedAdmin);
+
+        result.put("user", savedAdmin);
+        result.put("message", "Admin registered successfully! Please check your email for verification link.");
+
+
+        return result;
     }
 }
