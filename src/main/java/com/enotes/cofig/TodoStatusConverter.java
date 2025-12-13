@@ -1,6 +1,6 @@
 package com.enotes.cofig;
 
-import com.enotes.enums.TodoStatus;
+import com.enotes.todo.enums.TodoStatus;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 

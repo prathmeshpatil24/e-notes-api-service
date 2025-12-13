@@ -1,0 +1,64 @@
+package com.enotes.todo.repository;
+
+import com.enotes.todo.enums.Priority;
+import com.enotes.todo.entity.ToDo;
+import com.enotes.todo.enums.TodoStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface ToDoRepo extends JpaRepository<ToDo, Integer> {
+
+    // 1. Get all active todos for user
+    Page<ToDo> findByCreatedByAndIsDeletedFalse(Integer createdBy, Pageable pageable);
+
+    // 2. Get all todos by status -> filtering
+    Page<ToDo> findByCreatedByAndStatusAndIsDeletedFalse(Integer createdBy, TodoStatus status, Pageable pageable);
+
+    // 3. Get all todos by priority -> filtering
+    Page<ToDo> findByCreatedByAndPriorityAndIsDeletedFalse(Integer createdBy, Priority priority, Pageable pageable);
+
+    // 4. Single todo (active only)
+    Optional<ToDo> findByIdAndCreatedByAndIsDeletedFalse(Integer id, Integer createdBy);
+
+    // 5. Soft delete → find only active
+    Optional<ToDo> findByIdAndIsDeletedFalse(Integer id);
+
+    // 6. Get all deleted (bin)
+    Page<ToDo> findByCreatedByAndIsDeletedTrue(Integer createdBy, Pageable pageable);
+
+    // 7. Restore → find deleted
+    Optional<ToDo> findByIdAndIsDeletedTrue(Integer id);
+
+    // 8. Hard delete → find deleted only
+    Optional<ToDo> findByIdAndCreatedByAndIsDeletedTrue(Integer id, Integer createdBy);
+
+    // 9. Clear bin
+    //count deleted by user
+    @Query("SELECT COUNT(t) FROM ToDo t WHERE t.createdBy = :createdBy AND t.isDeleted = TRUE")
+    long countDeletedByUser(@Param("createdBy") Integer createdBy);
+
+
+    @Modifying
+    @Query("DELETE FROM ToDo t WHERE t.createdBy = :createdBy AND t.isDeleted = TRUE")
+    void deleteAllDeletedByUser(@Param("createdBy") Integer createdBy);
+
+    // 10. Summary counts
+    Long countByCreatedBy(Integer createdBy);
+
+    Long countByCreatedByAndStatus(Integer createdBy, TodoStatus status);
+
+    Long countByCreatedByAndPriority(Integer createdBy, Priority priority);
+
+    @Query("SELECT t FROM ToDo t WHERE t.isDeleted = TRUE AND t.deletedAt < :cutoff")
+    List<ToDo> findExpiredToDo(@Param("cutoff") LocalDateTime cutoff);
+}

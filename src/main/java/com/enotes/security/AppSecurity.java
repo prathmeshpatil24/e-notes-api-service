@@ -55,10 +55,8 @@ public class AppSecurity {
         http
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public APIs (no authentication)
                         .requestMatchers(
                                 "/auth/**",
                                 "/swagger-ui/**"

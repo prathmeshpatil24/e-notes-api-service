@@ -3,7 +3,7 @@ package com.enotes.utils;
 import com.enotes.dto.CategoryRequestModel;
 import com.enotes.dto.NotesRequestModel;
 import com.enotes.dto.TodoRequest;
-import com.enotes.enums.TodoStatus;
+import com.enotes.todo.enums.TodoStatus;
 import com.enotes.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
