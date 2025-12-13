@@ -6,6 +6,7 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "category")
+@EntityListeners(AuditingEntityListener.class)
 public class Category extends BaseModel {
 
     @Id

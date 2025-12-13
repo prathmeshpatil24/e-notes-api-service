@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "todo")
+@EntityListeners(AuditingEntityListener.class)
 public class ToDo extends BaseModel {
 
     @Id

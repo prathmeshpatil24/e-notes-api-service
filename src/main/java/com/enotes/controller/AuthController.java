@@ -1,10 +1,13 @@
 package com.enotes.controller;
 
+import com.enotes.dto.LoginRequest;
+import com.enotes.dto.LoginResponse;
 import com.enotes.dto.RegistrationDto;
 import com.enotes.entity.UserEntity;
 import com.enotes.service.impl.UserDetailServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,6 +65,20 @@ public class AuthController {
                         "email", ((UserEntity) response.get("user")).getEmail()
                 )
         );
+    }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest request){
+
+        LoginResponse loginResponse = userDetailService.login(request);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "status", HttpStatus.OK.value(),
+                        "message", "Login Successfully",
+                        "data", loginResponse
+                ));
     }
 
 }

@@ -60,7 +60,7 @@ public class AppSecurity {
                 .authorizeHttpRequests(auth -> auth
                         // Public APIs (no authentication)
                         .requestMatchers(
-                                "/auth/**",
+                                "/api/auth/**",
                                 "/swagger-ui/**"
                         ).permitAll()
                         .anyRequest()

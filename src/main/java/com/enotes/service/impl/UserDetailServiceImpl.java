@@ -1,22 +1,27 @@
 package com.enotes.service.impl;
 
+import com.enotes.dto.LoginRequest;
+import com.enotes.dto.LoginResponse;
 import com.enotes.dto.RegistrationDto;
 import com.enotes.entity.RoleEntity;
 import com.enotes.entity.UserEntity;
 import com.enotes.exceptions.EmailException;
 import com.enotes.exceptions.MobileNoException;
+import com.enotes.exceptions.UserNotFoundException;
 import com.enotes.repo.RoleRepo;
 import com.enotes.repo.UserDetailRepo;
+import com.enotes.security.CustomUserDetails;
+import com.enotes.security.JWTService;
 import com.enotes.service.UserDetailService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserDetailServiceImpl implements UserDetailService {
@@ -32,6 +37,12 @@ public class UserDetailServiceImpl implements UserDetailService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JWTService jwtService;
 
     @Override
     public UserEntity registerUser(RegistrationDto dto) {
@@ -232,4 +243,43 @@ public class UserDetailServiceImpl implements UserDetailService {
 
         return result;
     }
+
+    @Override
+    public LoginResponse login(LoginRequest loginRequest) {
+
+        // 1. Authenticate user (Spring Security handles validation)
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUserName(),
+                        loginRequest.getPassword()
+                )
+        );
+
+        // 2. Get authenticated principal
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
+
+        // 3. Fetch full user entity (needed for JWT claims)
+        UserEntity userEntity = userDetailRepo.findByEmail(userDetails.getUsername())
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found with email: " + userDetails.getUsername())
+                );
+
+        // 4. Generate JWT token
+        String token = jwtService.generateToken(userEntity);
+
+        // 5. Extract roles
+        List<String> roleList = userEntity.getRoles()
+                .stream()
+                .map(RoleEntity::getRoleName)
+                .toList();
+
+        // 6. Build response
+        return new LoginResponse(
+                userEntity.getEmail(),
+                token,
+                roleList
+        );
+    }
+
 }

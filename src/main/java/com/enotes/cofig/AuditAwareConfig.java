@@ -17,15 +17,9 @@ public class AuditAwareConfig implements AuditorAware<Integer> {
                 .getContext()
                 .getAuthentication();
 
-        if (auth == null || !auth.isAuthenticated()
-                || auth.getPrincipal().equals("anonymousUser")) {
-            return Optional.empty();
-        }
-
 
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         return Optional.of(user.getUserId());
-
 
        // return Optional.of(0); // hardcode admin/user id  as 2/0  for dev
     }

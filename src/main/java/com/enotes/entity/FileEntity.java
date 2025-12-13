@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "file_details")
+@EntityListeners(AuditingEntityListener.class)
 public class FileEntity extends BaseModel {
 
     @Id
