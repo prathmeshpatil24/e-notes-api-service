@@ -1,4 +1,4 @@
-package com.enotes.service.sheduling;
+package com.enotes.sheduling;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

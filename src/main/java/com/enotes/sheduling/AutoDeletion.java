@@ -1,4 +1,4 @@
-package com.enotes.service.sheduling;
+package com.enotes.sheduling;
 
 import com.enotes.entity.FileEntity;
 import com.enotes.entity.Notes;
@@ -9,6 +9,7 @@ import com.enotes.repo.ToDoRepo;
 import com.enotes.service.impl.FileServiceImpl;
 import com.enotes.service.impl.NotesServiceImpl;
 import com.enotes.service.impl.ToDoServiceImpl;
+import com.enotes.service.impl.TokenBlockServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -37,6 +38,9 @@ public class AutoDeletion {
     @Autowired
     private ToDoServiceImpl toDoService;
 
+    @Autowired
+    private TokenBlockServiceImpl tokenBlockService;
+
     // testing remaining
     /*
  ┌────────-------------- second  = 0
@@ -47,6 +51,9 @@ public class AutoDeletion {
  │  │   │   │   │   ┌day of week = *
  0  0   3   *   *   *
       */
+
+    //Once per day at low-traffic time
+    //Low DB load, Predictable, Safe, Industry standard
     @Scheduled(cron = "0 0 3 * * *")
     public void autoHardDelete(){
 
@@ -80,6 +87,11 @@ public class AutoDeletion {
                 }
         );
 
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    public void cleanUpExpiredToken(){
+      tokenBlockService.deleteExpiredToken();
     }
 
 }

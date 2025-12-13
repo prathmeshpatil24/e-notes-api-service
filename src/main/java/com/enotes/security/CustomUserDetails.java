@@ -48,6 +48,10 @@ public class CustomUserDetails implements UserDetails {
         return userEntity.getIsActive();   // allow login only if active
     }
 
+    public Integer getUserId() {
+        return userEntity.getId();
+    }
+
     //by default true setting
     @Override
     public boolean isAccountNonExpired() {
