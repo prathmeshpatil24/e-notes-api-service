@@ -83,23 +83,14 @@ The goal of this project is to create a smart, secure, and user-friendly notes m
 ### **Backend**
 
 1. [ ] Java 17
-2. [ ] 
-3. [ ] Spring Boot
-4. [ ] 
-5. [ ] Spring Web
-6. [ ] 
-7. [ ] Spring Data JPA
-8. [ ] 
-9. [ ] Spring Auditing
-10. [ ] 
-11. [ ] Spring Security (JWT Authentication)
-12. [ ] 
-13. [ ] Spring Ai
-14. [ ] 
+3. [ ] Spring Boot 
+5. [ ] Spring Web  
+7. [ ] Spring Data JPA 
+9. [ ] Spring Auditing   
+11. [ ] Spring Security (JWT Authentication)    
+13. [ ] Spring Ai 
 15. [ ] Lombok
-16. [ ] 
 17. [ ] Swagger (API Documentation)
-18. [ ] 
 19. [ ] Postman
 
 ### **Database**
