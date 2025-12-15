@@ -47,50 +47,50 @@ public class UserDetailServiceImpl implements UserDetailService {
     @Override
     public UserEntity registerUser(RegistrationDto dto) {
 
-        if(userDetailRepo.findByEmail(dto.getEmail()).isPresent()) {
+        if (userDetailRepo.findByEmail(dto.getEmail()).isPresent()) {
             throw new EmailException("user with this email is already present, please try new mail id");
         }
 
-        if(userDetailRepo.findByMobileNo(dto.getMobileNo()).isPresent()) {
+        if (userDetailRepo.findByMobileNo(dto.getMobileNo()).isPresent()) {
             throw new MobileNoException("user with this mobileNo is already present, please try new mobile no");
         }
 
-   try {
-       // Create new user entity
-       UserEntity user = new UserEntity();
-       user.setFirstName(dto.getFirstName());
-       user.setLastName(dto.getLastName());
-       user.setEmail(dto.getEmail());
-       user.setMobileNo(dto.getMobileNo());
+        try {
+            // Create new user entity
+            UserEntity user = new UserEntity();
+            user.setFirstName(dto.getFirstName());
+            user.setLastName(dto.getLastName());
+            user.setEmail(dto.getEmail());
+            user.setMobileNo(dto.getMobileNo());
 //       user.setPassword(dto.getPassword());// for testing
-      user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
         /*
          //for testing purpose
          user.setIsActive(true);
         String code = UUID.randomUUID().toString().substring(0, 6); // 6-digit code
         user.setVerificationCode(code);
          */
-       // for varification link
-       String token = UUID.randomUUID().toString();
-       user.setVerificationCode(token);
-       user.setIsActive(false);
+            // for varification link
+            String token = UUID.randomUUID().toString();
+            user.setVerificationCode(token);
+            user.setIsActive(false);
 
-       // Assign default role
-       RoleEntity roleUser = roleRepo.findById(1)
-               .orElseThrow(() -> new RuntimeException("Role USER not found"));
+            // Assign default role
+            RoleEntity roleUser = roleRepo.findById(1)
+                    .orElseThrow(() -> new RuntimeException("Role USER not found"));
 
-       user.getRoles().add(roleUser);
+            user.getRoles().add(roleUser);
 
-       UserEntity savedUser = userDetailRepo.save(user);
+            UserEntity savedUser = userDetailRepo.save(user);
 
-       //now send email with verification link
-       sendVerificationLink(savedUser);
+            //now send email with verification link
+            sendVerificationLink(savedUser);
 
-       return savedUser;
-   } catch (Exception e) {
-       e.printStackTrace();
-       throw new RuntimeException(e);
-   }
+            return savedUser;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -154,7 +154,7 @@ public class UserDetailServiceImpl implements UserDetailService {
 
         try {
 
-           emailService.mimeEmailForm(user.getEmail(), subject, body);
+            emailService.mimeEmailForm(user.getEmail(), subject, body);
 
         } catch (MessagingException e) {
             e.printStackTrace();
@@ -163,27 +163,27 @@ public class UserDetailServiceImpl implements UserDetailService {
     }
 
     @Override
-    public String verifyLink(String email, String code){
+    public String verifyLink(String email, String code) {
 
         UserEntity user = userDetailRepo.findByEmail(email)
                 .orElseThrow(() -> new EmailException("Email not found"));
 
-       try {
-           if (user.getIsActive())
-               return "Email already verified";
+        try {
+            if (user.getIsActive())
+                return "Email already verified";
 
-           if (!code.equals(user.getVerificationCode()))
-               throw new RuntimeException("Invalid verification link");
+            if (!code.equals(user.getVerificationCode()))
+                throw new RuntimeException("Invalid verification link");
 
-           user.setIsActive(true);
-           user.setVerificationCode(null);
-           userDetailRepo.save(user);
+            user.setIsActive(true);
+            user.setVerificationCode(null);
+            userDetailRepo.save(user);
 
-           return "Email verified successfully!";
-       } catch (Exception e) {
-           e.printStackTrace();
-           throw new RuntimeException(e);
-       }
+            return "Email verified successfully!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -280,6 +280,74 @@ public class UserDetailServiceImpl implements UserDetailService {
                 token,
                 roleList
         );
+    }
+
+    @Override
+    public void forgetPassword(String email) {
+
+        System.out.println("User mail:- " + email);
+        UserEntity userEntity = userDetailRepo.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("mail not found, enter valid mail id"));
+
+        try {
+            String token = UUID.randomUUID().toString();
+            System.out.println(token);
+
+            userEntity.setVerificationCode(token);
+
+            userDetailRepo.save(userEntity);
+
+            sendResetPwdLink(userEntity);
+
+        } catch (Exception e) {
+            e.printStackTrace(); // This will show the root cause
+            throw new  RuntimeException(e);
+        }
+
+    }
+
+
+    private void sendResetPwdLink(UserEntity user) {
+        String link = "http://localhost:8085/api/auth/forget-pwd?code="
+                + user.getVerificationCode();
+        String subject = "Password Reset For E-Notes Management";
+
+        String body = """
+                Hi,
+                
+                Click the link below to reset your password:
+                %s
+                
+                This link is valid for 15 minutes.
+                
+                If you did not request this, ignore this email.
+                """.formatted(link);
+
+        try {
+            emailService.mimeEmailForm(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public String forgetPasswordReset(String code, String newPassword) {
+        try {
+
+            UserEntity user = userDetailRepo
+                    .findByVerificationCode(code)
+                    .orElseThrow(() -> new RuntimeException("Invalid or expired reset link"));
+
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setVerificationCode(null);
+
+            userDetailRepo.save(user);
+
+            return "Password reset successfully. You can login now.";
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
 }

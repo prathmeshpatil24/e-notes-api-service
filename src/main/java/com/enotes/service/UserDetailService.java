@@ -18,4 +18,8 @@ public interface UserDetailService {
     Map<String, Object> registerAdmin(RegistrationDto dto);
 
     LoginResponse login (LoginRequest loginRequest);
+
+    void forgetPassword(String email);
+
+    String forgetPasswordReset(String code, String newPassword);
 }

@@ -49,6 +49,7 @@ public class UserEntity extends BaseModel{
     @NotNull(message = "isActive must not be null")
     private Boolean isActive;
 
+    @Column(length = 255)
     private String verificationCode;
 
     @ManyToMany(fetch = FetchType.EAGER)

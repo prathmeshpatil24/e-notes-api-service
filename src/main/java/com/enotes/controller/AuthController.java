@@ -1,9 +1,9 @@
 package com.enotes.controller;
 
-import com.enotes.dto.LoginRequest;
-import com.enotes.dto.LoginResponse;
-import com.enotes.dto.RegistrationDto;
+import com.enotes.dto.*;
 import com.enotes.entity.UserEntity;
+import com.enotes.exceptions.UserNotFoundException;
+import com.enotes.repo.UserDetailRepo;
 import com.enotes.service.impl.UserDetailServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +17,16 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
+    @Autowired
+    private UserDetailRepo userDetailRepo;
 
     @Autowired
     private UserDetailServiceImpl userDetailService;
-    
-    
+
+
     @PostMapping("/register")
-    public ResponseEntity<?>registerUser(
-            @Valid @RequestBody RegistrationDto dto){
+    public ResponseEntity<?> registerUser(
+            @Valid @RequestBody RegistrationDto dto) {
 
         UserEntity user = userDetailService.registerUser(dto);
 
@@ -54,8 +56,8 @@ public class AuthController {
 
 
     @PostMapping("/register-admin")
-    public ResponseEntity<?>registerAdmin(
-            @Valid @RequestBody RegistrationDto dto){
+    public ResponseEntity<?> registerAdmin(
+            @Valid @RequestBody RegistrationDto dto) {
 
         Map<String, Object> response = userDetailService.registerAdmin(dto);
 
@@ -69,7 +71,7 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request){
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
         LoginResponse loginResponse = userDetailService.login(request);
 
@@ -80,5 +82,32 @@ public class AuthController {
                         "data", loginResponse
                 ));
     }
+
+    @PostMapping("/forget-password")
+    public ResponseEntity<?> forgetPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+
+        userDetailService.forgetPassword(forgotPasswordRequest.getEmail());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Map.of(
+                        "status", HttpStatus.OK.value(),
+                        "message", "Please Check Mail"
+                ));
+    }
+
+    @PostMapping("/resetForgetPassword")
+    public ResponseEntity<?> forgetPasswordReset(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest) {
+
+        String response = userDetailService.forgetPasswordReset(resetPasswordRequest.getToken(),
+                resetPasswordRequest.getNewPassword());
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", response,
+                        "status", HttpStatus.OK.value()
+                )
+        );
+    }
+
 
 }
