@@ -63,6 +63,13 @@ public class AppSecurity {
                                 "/api/auth/**",
                                 "/swagger-ui/**"
                         ).permitAll()
+                        // admin only
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("ADMIN")
+                        // user only
+                        .requestMatchers("/api/user/**")
+                        .hasRole("USER")
+                        // any end-point
                         .anyRequest()
                         .authenticated()
                 )
