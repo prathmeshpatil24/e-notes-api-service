@@ -1,6 +1,5 @@
 package com.enotes.dto;
 
-import com.enotes.entity.Notes;
 import lombok.Getter;
 import lombok.Setter;
 

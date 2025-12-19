@@ -1,7 +1,8 @@
 package com.enotes.service.impl;
 
 import com.enotes.entity.TokenDetails;
-import com.enotes.repo.JwtTokenRepo;
+import com.enotes.repo.TokenRepo;
+import com.enotes.security.JWTService;
 import com.enotes.service.TokenBlockService;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,13 +10,15 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
-import static com.enotes.security.JWTService.SECRET_KEY;
 
 @Service
 public class TokenBlockServiceImpl implements TokenBlockService {
 
     @Autowired
-   private JwtTokenRepo jwtTokenRepo;
+   private TokenRepo tokenRepo;
+
+    @Autowired
+    private JWTService jwtService;
 
     @Override
     public void blockToken(String token) {
@@ -23,7 +26,7 @@ public class TokenBlockServiceImpl implements TokenBlockService {
         try {
 
             Date expiry = Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(jwtService.getSigningKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody()
@@ -33,7 +36,7 @@ public class TokenBlockServiceImpl implements TokenBlockService {
             tokenDetails.setToken(token);
             tokenDetails.setExpiryDate(expiry);
 
-            TokenDetails saved = jwtTokenRepo.save(tokenDetails);
+            TokenDetails saved = tokenRepo.save(tokenDetails);
             System.out.println(saved.getToken());
             System.out.println(saved.getExpiryDate());
         } catch (Exception e) {
@@ -44,11 +47,11 @@ public class TokenBlockServiceImpl implements TokenBlockService {
 
     @Override
     public void deleteExpiredToken() {
-          jwtTokenRepo.deleteByExpiryDateBefore(new Date());
+          tokenRepo.deleteByExpiryDateBefore(new Date());
     }
 
     @Override
     public boolean isTokenBlocked(String token) {
-        return jwtTokenRepo.findByToken(token).isPresent();
+        return tokenRepo.findByToken(token).isPresent();
     }
 }

@@ -1,14 +1,14 @@
 package com.enotes.sheduling;
 
-import com.enotes.entity.FileEntity;
-import com.enotes.entity.Notes;
-import com.enotes.entity.ToDo;
-import com.enotes.repo.FileRepo;
-import com.enotes.repo.NotesRepo;
-import com.enotes.repo.ToDoRepo;
-import com.enotes.service.impl.FileServiceImpl;
-import com.enotes.service.impl.NotesServiceImpl;
-import com.enotes.service.impl.ToDoServiceImpl;
+import com.enotes.notes.entity.FileEntity;
+import com.enotes.notes.entity.Notes;
+import com.enotes.todo.entity.ToDo;
+import com.enotes.notes.repo.FileRepo;
+import com.enotes.notes.repo.NotesRepo;
+import com.enotes.todo.repo.ToDoRepo;
+import com.enotes.notes.service.FileServiceImpl;
+import com.enotes.notes.service.NotesServiceImpl;
+import com.enotes.todo.service.ToDoServiceImpl;
 import com.enotes.service.impl.TokenBlockServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

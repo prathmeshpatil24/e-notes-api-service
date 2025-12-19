@@ -6,9 +6,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,21 +20,26 @@ import java.util.Map;
 @Service
 public class JWTService {
 
+    @Value("${jwt.secret}")
+    private  String jwtSecret;
+
     // Secret key (in-memory for now, move to config/env in production)
-    public static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+//    public static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     // Token validity in milliseconds (e.g., 60 minutes)
     private static final long EXPIRATION_TIME = 1000 * 60 * 60;
 
     // signing key helper
     public Key getSigningKey() {
-        return SECRET_KEY;
+//        return SECRET_KEY;
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     //extract all claims (decoder)
     private Claims extractAllClaims(String token){
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)// provide the secret key
+                //.setSigningKey(SECRET_KEY)// provide the secret key
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)// decode and verify the token
                 .getBody();
@@ -85,7 +92,8 @@ public class JWTService {
                 .setSubject(userEntity.getEmail())// subject (e.g., username, email)
                 .setIssuedAt(new Date(System.currentTimeMillis())) // issue time
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // expiry time
-                .signWith(SECRET_KEY) // sign with secret key
+                //.signWith(SECRET_KEY) // sign with secret key
+                .signWith(getSigningKey())
                 .compact();
     }
 
