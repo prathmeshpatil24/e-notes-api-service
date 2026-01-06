@@ -4,7 +4,6 @@ import com.enotes.entity.RoleEntity;
 import com.enotes.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,7 +26,8 @@ public class JWTService {
 //    public static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     // Token validity in milliseconds (e.g., 60 minutes)
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60;
+    private static final long EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000;
+            //1000 * 60 * 60;
 
     // signing key helper
     public Key getSigningKey() {
@@ -74,7 +74,7 @@ public class JWTService {
     }
 
     //generate the token with role and isActive
-    public String generateToken(UserEntity userEntity) {
+    public String generateAccessToken(UserEntity userEntity) {
 
         Map<String,Object> claims = new HashMap<>();
 

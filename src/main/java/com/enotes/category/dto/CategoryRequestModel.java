@@ -1,4 +1,4 @@
-package com.enotes.dto;
+package com.enotes.category.dto;
 
 import lombok.Getter;
 import lombok.Setter;

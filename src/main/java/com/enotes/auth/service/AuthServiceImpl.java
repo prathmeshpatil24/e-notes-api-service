@@ -17,6 +17,8 @@ import com.enotes.service.impl.EmailServiceImpl;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -60,19 +62,22 @@ public class AuthServiceImpl implements AuthService {
             user.setMobileNo(dto.getMobileNo());
 //       user.setPassword(dto.getPassword());// for testing
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        /*
+
          //for testing purpose
+         /*
          user.setIsActive(true);
         String code = UUID.randomUUID().toString().substring(0, 6); // 6-digit code
-        user.setVerificationCode(code);
-         */
+        user.setVerificationCode(null);
+        */
+
             // for varification link
             String token = UUID.randomUUID().toString();
             user.setVerificationCode(token);
             user.setIsActive(false);
 
             // Assign default role
-            RoleEntity roleUser = roleRepo.findById(1)
+            RoleEntity roleUser = roleRepo.findByRoleName("ROLE_USER")
+                    //.findById(1)
                     .orElseThrow(() -> new RuntimeException("Role USER not found"));
 
             user.getRoles().add(roleUser);
@@ -83,12 +88,13 @@ public class AuthServiceImpl implements AuthService {
             sendVerificationLink(savedUser, EmailPurpose.EMAIL_VERIFICATION);
 
             return savedUser;
-        } catch (Exception e) {
+        } catch (DataIntegrityViolationException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new RuntimeException(e); // add proper exception handling here while prod
         }
     }
 
+    //Admin registration with role upgrade if email exists
     @Override
     public Map<String, Object> registerAdmin(RegistrationDto dto) {
 
@@ -102,7 +108,8 @@ public class AuthServiceImpl implements AuthService {
             UserEntity user = existing.get();
 
             // User already exists → upgrade role
-            RoleEntity adminRole = roleRepo.findById(2)
+            RoleEntity adminRole = roleRepo.findByRoleName("ROLE_ADMIN")
+                    //.findById(1)
                     .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
 
             user.getRoles().add(adminRole);
@@ -130,7 +137,8 @@ public class AuthServiceImpl implements AuthService {
         admin.setIsActive(false);
 
         // Assign admin role
-        RoleEntity adminRole = roleRepo.findById(2)
+        RoleEntity adminRole = roleRepo.findByRoleName("ROLE_ADMIN")
+                //.findById(2)
                 .orElseThrow(() -> new RuntimeException("Role ADMIN not found"));
 
         admin.getRoles().add(adminRole);
@@ -163,7 +171,14 @@ public class AuthServiceImpl implements AuthService {
             user.setVerificationCode(null);
             userDetailRepo.save(user);
 
-            return "Email verified successfully!";
+            String loginUrl = "http://localhost:8085/api/auth/login";
+
+            String message = String.format(
+                    "Email verified successfully!%nPlease login to continue: %n%s",
+                    loginUrl
+            );
+
+            return message;
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -192,7 +207,7 @@ public class AuthServiceImpl implements AuthService {
                 );
 
         // 4. Generate JWT token
-        String token = jwtService.generateToken(userEntity);
+        String token = jwtService.generateAccessToken(userEntity);
 
         // 5. Extract roles
         List<String> roleList = userEntity.getRoles()
@@ -206,7 +221,12 @@ public class AuthServiceImpl implements AuthService {
         response.setToken(token);
         response.setRoles(roleList);
 
-        return response;
+        try {
+            return response;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -252,6 +272,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException(e);
         }
     }
+
 
     private void sendVerificationLink(UserEntity user, EmailPurpose emailPurpose) {
 

@@ -64,7 +64,7 @@ public class AppSecurity {
                                 "/swagger-ui/**"
                         ).permitAll()
                         // admin only
-                        .requestMatchers("/api/admin/**")
+                        .requestMatchers("/api/admin/**", "/api/category/**")
                         .hasRole("ADMIN")
                         // user only
                         .requestMatchers("/api/user/**")

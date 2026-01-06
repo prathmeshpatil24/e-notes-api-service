@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "category")
 @EntityListeners(AuditingEntityListener.class)
@@ -46,6 +48,6 @@ public class Category extends BaseModel {
     @JsonManagedReference
     private List<Notes> notes = new ArrayList<>();
 
-    public Category() {}
+
 
 }

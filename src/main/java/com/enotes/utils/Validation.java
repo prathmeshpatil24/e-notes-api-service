@@ -1,6 +1,6 @@
 package com.enotes.utils;
 
-import com.enotes.dto.CategoryRequestModel;
+import com.enotes.category.dto.CategoryRequestModel;
 import com.enotes.dto.NotesRequestModel;
 import com.enotes.dto.TodoRequest;
 import com.enotes.todo.enums.TodoStatus;

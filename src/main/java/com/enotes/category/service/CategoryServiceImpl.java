@@ -1,8 +1,8 @@
 package com.enotes.category.service;
 
 import com.enotes.dto.ActiveCategoryModel;
-import com.enotes.dto.CategoryRequestModel;
-import com.enotes.dto.CategoryResponseModel;
+import com.enotes.category.dto.CategoryRequestModel;
+import com.enotes.category.dto.CategoryResponseModel;
 import com.enotes.category.entity.Category;
 import com.enotes.exceptions.CategoryListException;
 import com.enotes.exceptions.CategoryNotFoundException;
@@ -10,11 +10,15 @@ import com.enotes.exceptions.SaveFailedException;
 import com.enotes.category.repo.CategoryRepo;
 import com.enotes.utils.Validation;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -26,13 +30,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private Validation validation;
 
+    @Transactional
     @Override
     public CategoryResponseModel saveCategory(CategoryRequestModel request) {
         //validation
          validation.categoryValidation(request);
 
          //check duplicate category name
-        categoryRepo.findByName(request.getName().trim())
+         categoryRepo.findByName(request.getName().trim())
                 .ifPresent(category -> {
                     throw new DataIntegrityViolationException("Category with name '" + request.getName() + "' already exists.");
                 });
@@ -45,6 +50,7 @@ public class CategoryServiceImpl implements CategoryService {
         category.setIsActive(true); // new category is active by default
 
             try {
+
                 Category savedCategory = categoryRepo.save(category);
 
                 // Map entity -> response
@@ -59,6 +65,72 @@ public class CategoryServiceImpl implements CategoryService {
             }catch (DataIntegrityViolationException ex) {
                 throw new SaveFailedException("Category save failed: duplicate or invalid data." ,  ex);
             }
+    }
+
+    @Transactional
+    @Override
+    public void saveBulkCategory(List<CategoryRequestModel>categoryRequest){
+
+//        List<Category>bulkCategories = new ArrayList<>();
+//
+//        for (CategoryRequestModel request : categoryRequestModels) {
+//            //validation
+//            validation.categoryValidation(request);
+//
+//            //check duplicate category name
+//            categoryRepo.findByName(request.getName().trim())
+//                    .ifPresent(category -> {
+//                        throw new DataIntegrityViolationException("Category with name '" + request.getName() + "' already exists.");
+//                    }); // this will hit the database for each category name
+//                       // find the sol for it later
+//
+//            Category category = new Category();
+//            //setting value from request model to entity
+//            category.setName(request.getName().trim());
+//            category.setDescription(request.getDescription().trim());
+//            category.setIsActive(true); // new category is active by default
+//
+//            bulkCategories.add(category);
+//        }
+//
+//        try {
+//            categoryRepo.saveAll(bulkCategories);
+//        } catch (DataIntegrityViolationException ex) {
+//            throw new SaveFailedException("Bulk category save failed: duplicate or invalid data." ,  ex);
+//        }
+        Set<String> categoryNames = categoryRequest.stream()
+                .map(r -> r.getName().trim())
+                .collect(Collectors.toSet());
+
+        Set<String> existingNames = categoryRepo.findExistingNames(categoryNames);
+
+        if (!existingNames.isEmpty()) {
+            throw new DataIntegrityViolationException(
+                    "Duplicate category names: " + existingNames
+            );
+        }
+
+        List<Category> categories = categoryRequest.stream()
+                .map(req -> {
+
+                    validation.categoryValidation(req);
+
+                    Category c = new Category();
+                    c.setName(req.getName().trim());
+                    c.setDescription(req.getDescription().trim());
+                    c.setIsActive(req.getIsActive());
+                    return c;
+                })
+                .toList();
+
+        try{
+            // Bulk save (single insert batch)
+            categoryRepo.saveAll(categories);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

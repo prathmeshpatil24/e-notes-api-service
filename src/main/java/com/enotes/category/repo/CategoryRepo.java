@@ -2,10 +2,13 @@ package com.enotes.category.repo;
 
 import com.enotes.category.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface CategoryRepo extends JpaRepository<Category,Integer> {
@@ -20,4 +23,8 @@ public interface CategoryRepo extends JpaRepository<Category,Integer> {
 
     // 4. For validating category is ACTIVE (specific use case)
     Optional<Category> findByIdAndIsActiveTrue(Integer categoryId);
+
+    @Query("SELECT c.name FROM Category c WHERE (c.name) IN :names")
+    Set<String> findExistingNames(@Param("names") Set<String> names);
+
 }

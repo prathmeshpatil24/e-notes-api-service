@@ -1,14 +1,16 @@
 package com.enotes.category.service;
 
 import com.enotes.dto.ActiveCategoryModel;
-import com.enotes.dto.CategoryRequestModel;
-import com.enotes.dto.CategoryResponseModel;
+import com.enotes.category.dto.CategoryRequestModel;
+import com.enotes.category.dto.CategoryResponseModel;
 
 import java.util.List;
 
 public interface CategoryService {
 
     public CategoryResponseModel saveCategory(CategoryRequestModel categoryRequestModel);
+
+    void saveBulkCategory(List<CategoryRequestModel>categoryRequestModels);
 
     public List<CategoryResponseModel> getAllCategory();
 

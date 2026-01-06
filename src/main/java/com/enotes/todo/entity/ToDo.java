@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -36,6 +37,7 @@ public class ToDo extends BaseModel {
 
     @Convert(converter = TodoStatusConverter.class)
     private TodoStatus status;  // Stored as INT
+
 
     @Column(name = "deletedAt", nullable = true)
     private LocalDateTime deletedAt;
