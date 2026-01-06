@@ -27,4 +27,5 @@ public class RoleEntity {
 
     @ManyToMany(mappedBy = "roles")
     private Set<UserEntity> users = new HashSet<>();
+
 }

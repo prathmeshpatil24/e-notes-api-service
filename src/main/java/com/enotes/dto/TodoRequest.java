@@ -1,6 +1,6 @@
 package com.enotes.dto;
 
-import com.enotes.enums.Priority;
+import com.enotes.todo.enums.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

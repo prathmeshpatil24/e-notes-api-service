@@ -15,4 +15,6 @@ public interface UserDetailRepo extends JpaRepository<UserEntity, Integer> {
     // check mobile No
     Optional<UserEntity>findByMobileNo(String mobileNo);
 
+    Optional<UserEntity> findByVerificationCode(String code);
+
 }

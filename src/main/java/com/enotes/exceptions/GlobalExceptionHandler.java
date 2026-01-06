@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
@@ -16,6 +17,19 @@ import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<?> handleNoHandlerFound(NoHandlerFoundException ex) {
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "status", 404,
+                        "error", "Not Found",
+                        "message", "API endpoint not found",
+                        "path", ex.getRequestURL()
+                ));
+    }
 
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<?> handleCategoryNotFound(CategoryNotFoundException ex) {
@@ -232,9 +246,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailException.class)
     public ResponseEntity<?> handleEmailException(EmailException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of(
-                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "status", HttpStatus.CONFLICT.value(),
                         "error", "Email error",
                         "message", ex.getMessage(),
                         "timestamp", LocalDateTime.now()
@@ -243,9 +257,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MobileNoException.class)
     public ResponseEntity<?> handleMobileNoException(MobileNoException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of(
-                        "status", HttpStatus.BAD_REQUEST.value(),
+                        "status", HttpStatus.CONFLICT.value(),
                         "error", "Mobile Number Error",
                         "message", ex.getMessage(),
                         "timestamp", LocalDateTime.now()
