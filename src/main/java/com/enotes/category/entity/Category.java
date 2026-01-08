@@ -1,6 +1,6 @@
 package com.enotes.category.entity;
 
-import com.enotes.entity.BaseModel;
+import com.enotes.utils.entity.BaseModel;
 import com.enotes.notes.entity.Notes;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;

@@ -1,6 +1,6 @@
-package com.enotes.service.impl;
+package com.enotes.utils.service.impl;
 
-import com.enotes.service.CacheService;
+import com.enotes.utils.service.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;

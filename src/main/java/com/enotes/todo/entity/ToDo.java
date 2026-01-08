@@ -1,7 +1,7 @@
 package com.enotes.todo.entity;
 
 import com.enotes.cofig.TodoStatusConverter;
-import com.enotes.entity.BaseModel;
+import com.enotes.utils.entity.BaseModel;
 import com.enotes.todo.enums.Priority;
 import com.enotes.todo.enums.TodoStatus;
 import jakarta.persistence.*;
@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter

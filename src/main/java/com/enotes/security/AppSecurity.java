@@ -1,6 +1,6 @@
 package com.enotes.security;
 
-import com.enotes.service.impl.TokenBlockServiceImpl;
+import com.enotes.utils.service.impl.TokenBlockServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -66,9 +66,11 @@ public class AppSecurity {
                         // admin only
                         .requestMatchers("/api/admin/**", "/api/category/**")
                         .hasRole("ADMIN")
+                        .requestMatchers("/actuator/**")
+                        .hasRole("ADMIN")
                         // user only
-                        .requestMatchers("/api/user/**")
-                        .hasRole("USER")
+                        .requestMatchers("/api/**")
+                        .hasAnyRole("USER", "ADMIN")
                         // any end-point
                         .anyRequest()
                         .authenticated()

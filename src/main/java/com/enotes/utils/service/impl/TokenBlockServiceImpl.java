@@ -1,9 +1,9 @@
-package com.enotes.service.impl;
+package com.enotes.utils.service.impl;
 
-import com.enotes.entity.TokenDetails;
-import com.enotes.repo.TokenRepo;
+import com.enotes.utils.entity.TokenDetails;
+import com.enotes.utils.repository.TokenRepo;
 import com.enotes.security.JWTService;
-import com.enotes.service.TokenBlockService;
+import com.enotes.utils.service.TokenBlockService;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

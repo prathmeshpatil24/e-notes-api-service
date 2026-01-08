@@ -3,7 +3,7 @@ package com.enotes.auth.service;
 import com.enotes.auth.dto.LoginRequest;
 import com.enotes.auth.dto.LoginResponse;
 import com.enotes.auth.dto.RegistrationDto;
-import com.enotes.entity.UserEntity;
+import com.enotes.utils.entity.UserEntity;
 
 import java.util.Map;
 

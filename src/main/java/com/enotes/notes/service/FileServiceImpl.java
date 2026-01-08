@@ -10,7 +10,11 @@ import com.enotes.exceptions.*;
 import com.enotes.notes.repo.FileRepo;
 import com.enotes.notes.repo.NotesRepo;
 import com.enotes.utils.FileIdGenerator;
+import com.enotes.utils.entity.UserEntity;
+import com.enotes.utils.repository.UserDetailRepo;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -30,17 +34,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+
 @Service
 public class FileServiceImpl implements FileService {
 
     @Autowired
-    private FileRepo fileRepo;
+    private  UserDetailRepo userDetailRepo;
 
     @Autowired
-    private NotesRepo notesRepo;
+    private  FileRepo fileRepo;
 
     @Autowired
-    private AuditAwareConfig auditAwareConfig;
+    private  NotesRepo notesRepo;
+
+    @Autowired
+    private  AuditAwareConfig auditAwareConfig;
 
     @Autowired
     private FileIdGenerator fileIdGenerator;
@@ -71,9 +79,13 @@ public class FileServiceImpl implements FileService {
 //              System.out.println("Display File name:- " + displayFileName);
 
               //get the file name
-              String username = String.valueOf(notes.getCreatedBy());
+              //String username = String.valueOf(notes.getCreatedBy());
+              Integer createdBy = notes.getCreatedBy();
+              Optional<UserEntity> userEntity = userDetailRepo.findById(createdBy);
+              String username = userEntity.get().getEmail();
 
-              Path path = Paths.get(fileUploadDir).resolve(username).normalize();
+              //Path path = Paths.get(fileUploadDir).resolve(username).normalize();
+              Path path = Paths.get(fileUploadDir).toAbsolutePath().resolve(username).normalize();
 
               if (!Files.exists(path)) {
                   Files.createDirectories(path);

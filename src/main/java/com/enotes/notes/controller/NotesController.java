@@ -8,6 +8,7 @@ import com.enotes.exceptions.FileNotesMismatchException;
 import com.enotes.exceptions.UserNotFoundException;
 import com.enotes.notes.service.FileServiceImpl;
 import com.enotes.notes.service.NotesServiceImpl;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -22,18 +23,17 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/notes")
 public class NotesController {
 
-    @Autowired
-    private NotesServiceImpl notesService;
 
-    @Autowired
-    private FileServiceImpl fileService;
+    private final NotesServiceImpl notesService;
 
-    @Autowired
-    private AuditAwareConfig auditAwareConfig;
+    private final FileServiceImpl fileService;
+
+    private final AuditAwareConfig auditAwareConfig;
 
     @PostMapping("/create")
     public ResponseEntity<?> createNewNotes(@RequestBody NotesRequestModel notesRequestModel) {

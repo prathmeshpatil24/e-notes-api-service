@@ -6,6 +6,7 @@ import com.enotes.category.dto.CategoryRequestModel;
 import com.enotes.category.dto.CategoryResponseModel;
 import com.enotes.category.service.CategoryService;
 
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.HttpStatus;
@@ -16,12 +17,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/category")
 public class CategoryController {
 
-    @Autowired
-    private CategoryServiceImpl categoryService;
+    private final CategoryServiceImpl categoryService;
 
     @PostMapping("/create")
     public ResponseEntity<?> saveCategory(@RequestBody CategoryRequestModel categoryRequestModel) {

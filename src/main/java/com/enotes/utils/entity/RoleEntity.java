@@ -1,6 +1,7 @@
-package com.enotes.entity;
+package com.enotes.utils.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,6 +27,7 @@ public class RoleEntity {
     private String roleName;
 
     @ManyToMany(mappedBy = "roles")
+    @JsonBackReference
     private Set<UserEntity> users = new HashSet<>();
 
 }

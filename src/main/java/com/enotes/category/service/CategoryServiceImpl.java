@@ -11,6 +11,7 @@ import com.enotes.category.repo.CategoryRepo;
 import com.enotes.utils.Validation;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -20,15 +21,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
+@AllArgsConstructor
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
-    @Autowired
-    private CategoryRepo categoryRepo;
 
-    @Autowired
-    private Validation validation;
+    private final CategoryRepo categoryRepo;
+
+    private final Validation validation;
 
     @Transactional
     @Override

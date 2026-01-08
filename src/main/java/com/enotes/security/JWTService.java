@@ -1,7 +1,7 @@
 package com.enotes.security;
 
-import com.enotes.entity.RoleEntity;
-import com.enotes.entity.UserEntity;
+import com.enotes.utils.entity.RoleEntity;
+import com.enotes.utils.entity.UserEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

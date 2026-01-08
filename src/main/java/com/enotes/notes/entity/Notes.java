@@ -1,6 +1,6 @@
 package com.enotes.notes.entity;
 
-import com.enotes.entity.BaseModel;
+import com.enotes.utils.entity.BaseModel;
 import com.enotes.category.entity.Category;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;

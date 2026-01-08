@@ -1,6 +1,6 @@
-package com.enotes.repo;
+package com.enotes.utils.repository;
 
-import com.enotes.entity.TokenDetails;
+import com.enotes.utils.entity.TokenDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

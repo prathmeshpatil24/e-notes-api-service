@@ -1,4 +1,4 @@
-package com.enotes.entity;
+package com.enotes.utils.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

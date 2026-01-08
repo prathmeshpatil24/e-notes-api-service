@@ -12,6 +12,7 @@ import com.enotes.exceptions.ToDoListFetchException;
 import com.enotes.todo.repo.ToDoRepo;
 import com.enotes.utils.Validation;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -25,16 +26,14 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+@AllArgsConstructor
 @Service
 public class ToDoServiceImpl implements ToDoService {
 
-    @Autowired
-    private ToDoRepo toDoRepo;
+    private final ToDoRepo toDoRepo;
 
-    @Autowired
-    private Validation validation;
+    private final Validation validation;
 
-    @Override
     public ToDoResponse createTodo(TodoRequest request, Integer userId) {
 
         //validation

@@ -1,5 +1,6 @@
 package com.enotes.admin.dto;
 
+import com.enotes.utils.entity.RoleEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,5 +22,5 @@ public class UserData {
 
     private Boolean isActive;
 
-    private Set<String> roles;
+    private Set<RoleEntity> roles;
 }

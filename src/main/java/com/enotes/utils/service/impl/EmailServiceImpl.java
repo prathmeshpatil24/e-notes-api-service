@@ -1,6 +1,6 @@
-package com.enotes.service.impl;
+package com.enotes.utils.service.impl;
 
-import com.enotes.service.EmailService;
+import com.enotes.utils.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;

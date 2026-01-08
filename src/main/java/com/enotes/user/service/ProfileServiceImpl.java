@@ -1,9 +1,9 @@
 package com.enotes.user.service;
 
-import com.enotes.service.impl.TokenBlockServiceImpl;
+import com.enotes.utils.service.impl.TokenBlockServiceImpl;
 import com.enotes.user.dto.ChangePasswordRequest;
-import com.enotes.entity.UserEntity;
-import com.enotes.repo.UserDetailRepo;
+import com.enotes.utils.entity.UserEntity;
+import com.enotes.utils.repository.UserDetailRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

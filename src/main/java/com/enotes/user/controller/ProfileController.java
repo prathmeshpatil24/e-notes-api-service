@@ -1,7 +1,7 @@
 package com.enotes.user.controller;
 
 import com.enotes.audit.AuditAwareConfig;
-import com.enotes.entity.UserEntity;
+import com.enotes.utils.entity.UserEntity;
 import com.enotes.user.dto.ChangePasswordRequest;
 import com.enotes.exceptions.UserNotFoundException;
 import com.enotes.user.service.ProfileServiceImpl;

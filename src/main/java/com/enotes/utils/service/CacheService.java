@@ -1,4 +1,4 @@
-package com.enotes.service;
+package com.enotes.utils.service;
 
 import org.springframework.cache.Cache;
 

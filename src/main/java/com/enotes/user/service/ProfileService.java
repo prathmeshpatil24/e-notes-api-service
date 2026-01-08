@@ -1,6 +1,6 @@
 package com.enotes.user.service;
 
-import com.enotes.entity.UserEntity;
+import com.enotes.utils.entity.UserEntity;
 import com.enotes.user.dto.ChangePasswordRequest;
 
 public interface ProfileService {

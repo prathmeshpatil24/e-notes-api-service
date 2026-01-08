@@ -1,6 +1,7 @@
-package com.enotes.entity;
+package com.enotes.utils.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -58,5 +59,6 @@ public class UserEntity extends BaseModel{
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @JsonManagedReference
     private Set<RoleEntity> roles = new HashSet<>();
 }
