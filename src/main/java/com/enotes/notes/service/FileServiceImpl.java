@@ -147,9 +147,13 @@ public class FileServiceImpl implements FileService {
         Optional<Integer> currentAuditor = auditAwareConfig.getCurrentAuditor();
 
         Integer createdBy = currentAuditor.orElseThrow(() -> new UserNotFoundException("User not authenticated"));
+        Optional<UserEntity> userEntity = userDetailRepo.findById(createdBy);
+        String username = userEntity.get().getEmail();
 
         // Step 3: Build full file path -> uploadsFiles/{createdBy}/{fileName}
-        Path path = Paths.get(fileUploadDir).resolve(String.valueOf(createdBy)).resolve(fileName).normalize();
+        //Path path = Paths.get(fileUploadDir).resolve(username).normalize();
+        Path path = Paths.get(fileUploadDir).toAbsolutePath().resolve(username).normalize();
+
 
         System.out.println("Resolved path for download: " + path.toAbsolutePath());
 
